@@ -1,10 +1,9 @@
-package me.ppgome.mountGuard.database;
+package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.dao.Dao;
-import me.ppgome.mountGuard.MountGuard;
+import me.ppgome.critterGuard.CritterGuard;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -17,13 +16,13 @@ public class MountAccessTable {
     // The Dao instance for MountAccess, used to perform database operations.
     private Dao<MountAccess, Integer> mountAccessDao;
     // The instance of the MountGuard plugin, used to access plugin methods and properties.
-    private MountGuard plugin;
+    private CritterGuard plugin;
 
     /**
      * Constructs a MountAccessTable instance.
      * @param plugin The MountGuard plugin instance.
      */
-    public MountAccessTable(MountGuard plugin) {
+    public MountAccessTable(CritterGuard plugin) {
         this.plugin = plugin;
         this.mountAccessDao = plugin.getMountAccessDao();
     }

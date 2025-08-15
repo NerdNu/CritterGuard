@@ -1,7 +1,7 @@
-package me.ppgome.mountGuard;
+package me.ppgome.critterGuard;
 
-import me.ppgome.mountGuard.database.MountAccess;
-import me.ppgome.mountGuard.database.SavedMount;
+import me.ppgome.critterGuard.database.MountAccess;
+import me.ppgome.critterGuard.database.SavedMount;
 
 import java.util.ArrayList;
 import java.util.Set;

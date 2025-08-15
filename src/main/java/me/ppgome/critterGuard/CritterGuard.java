@@ -1,20 +1,19 @@
-package me.ppgome.mountGuard;
+package me.ppgome.critterGuard;
 
 import com.j256.ormlite.dao.Dao;
 import com.j256.ormlite.dao.DaoManager;
 import com.j256.ormlite.jdbc.JdbcConnectionSource;
 import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
-import me.ppgome.mountGuard.database.MountAccess;
-import me.ppgome.mountGuard.database.MountAccessTable;
-import me.ppgome.mountGuard.database.SavedMount;
-import me.ppgome.mountGuard.database.SavedMountTable;
+import me.ppgome.critterGuard.commands.CritterCommand;
+import me.ppgome.critterGuard.database.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
@@ -25,45 +24,67 @@ import java.util.concurrent.CompletableFuture;
  * It allows players to control who can access their mounts and provides a database
  * to store mount-related information.
  */
-public final class MountGuard extends JavaPlugin {
+public final class CritterGuard extends JavaPlugin {
 
     /**
      * The URL for the SQLite database used by the MountGuard plugin.
      * This database stores information about mount access permissions and saved mounts.
      */
     private static final String DATABASE_URL = "jdbc:sqlite:plugins/MountGuard/MountGuard.db";
+
     /**
      * The connection source for the SQLite database.
      * This is used to establish connections to the database for performing CRUD operations.
      */
     private ConnectionSource connectionSource;
+
     /**
      * The Data Access Object (DAO) for managing MountAccess records in the database.
      * This DAO provides methods to perform CRUD operations on MountAccess records.
      */
     private Dao<MountAccess, Integer> mountAccessDao;
+
     /**
      * The Data Access Object (DAO) for managing SavedMount records in the database.
      * This DAO provides methods to perform CRUD operations on SavedMount records.
      */
     private Dao<SavedMount, String> savedMountDao;
+
+    /**
+     * The Data Access Object (DAO) for managing SavedPet records in the database.
+     * This DAO provides methods to perform CRUD operations on SavedPet records.
+     */
+    private Dao<SavedPet, String> savedPetDao;
+
     /**
      * Table handler for MountAccess records.
      * This object provides higher-level methods for managing MountAccess records in the database.
      */
     private MountAccessTable mountAccessTable;
+
     /**
      * Table handler for SavedMount records.
      * This object provides higher-level methods for managing SavedMount records in the database.
      */
     private SavedMountTable savedMountTable;
-    /**
-     * An in-memory cache of SavedMount objects.
-     * This cache is used to store recently accessed or modified SavedMounts for quick retrieval.
-     */
-    private HashMap<UUID, SavedMount> savedMountsCache = new HashMap<>();
 
-    private HashMap<UUID, PlayerMeta> playerMetaCache = new HashMap<>();
+    /**
+     * Table handler for SavedPet records.
+     * This object provides higher-level methods for managing SavedPet records in the database.
+     */
+    private SavedPetTable savedPetTable;
+
+    /**
+     * In-memory cache for storing critter and player metadata.
+     * This cache is used to quickly access critter and player information without querying the database.
+     */
+    private CritterCache critterCache;
+
+    /**
+     * Command handler for the /critter command.
+     * This object handles the execution of the critter command and its subcommands.
+     */
+    private CritterCommand critterCommand;
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -72,13 +93,31 @@ public final class MountGuard extends JavaPlugin {
         // Plugin startup logic
         setupDatabase();
         loadDatabaseData();
-        getServer().getPluginManager().registerEvents(new MGEventHandler(this), this);
+        critterCache = new CritterCache(this);
+        getServer().getPluginManager().registerEvents(new CGEventHandler(this), this);
+        this.getCommand("critter").setExecutor(critterCommand(this));
 
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("critter")) {
+            return critterCommand.execute(sender, args);
+        }
+        return false;
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+        if (command.getName().equalsIgnoreCase("critter")) {
+            return critterCommand.tabComplete(sender, args);
+        }
+        return null;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -96,10 +135,12 @@ public final class MountGuard extends JavaPlugin {
             // Create DAOs for MountAccess and SavedMount
             mountAccessDao = DaoManager.createDao(connectionSource, MountAccess.class);
             savedMountDao = DaoManager.createDao(connectionSource, SavedMount.class);
+            savedPetDao = DaoManager.createDao(connectionSource, SavedPet.class);
 
             // Initialize table handlers for MountAccess and SavedMount
             mountAccessTable = new MountAccessTable(this);
             savedMountTable = new SavedMountTable(this);
+            savedPetTable = new SavedPetTable(this);
 
             // Create tables if they do not exist
             TableUtils.createTableIfNotExists(connectionSource, MountAccess.class);
@@ -110,6 +151,11 @@ public final class MountGuard extends JavaPlugin {
         }
     }
 
+    /**
+     * Loads existing data from the database into the in-memory cache.
+     * This method retrieves all SavedMount and MountAccess records from the database
+     * and populates the CritterCache with this data for quick access during runtime.
+     */
     public void loadDatabaseData() {
 
         CompletableFuture<List<SavedMount>> savedMountsFuture = savedMountTable.getAllSavedMounts();
@@ -123,7 +169,7 @@ public final class MountGuard extends JavaPlugin {
                 // Initialize the in-memory cache for saved mounts
                 if(savedMounts != null) {
                     for(SavedMount savedMount : savedMounts) {
-                        savedMountsCache.put(UUID.fromString(savedMount.getMountUuid()), savedMount);
+                        critterCache.addSavedMount(savedMount);
                     }
                     logInfo("Loaded " + savedMounts.size() + " saved mounts from the database.");
                 }
@@ -131,13 +177,13 @@ public final class MountGuard extends JavaPlugin {
                 if(mountAccesses != null) {
                     for(MountAccess mountAccess : mountAccesses) {
                         UUID playerUuid = UUID.fromString(mountAccess.getPlayerUuid());
-                        PlayerMeta playerMeta = playerMetaCache.get(playerUuid);
+                        PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
                         // If player meta is not in cache, create a new one
                         // and add the mount access to it.
                         // This allows us to keep track of which mounts a player has access to.
                         if (playerMeta == null) {
                             playerMeta = new PlayerMeta(playerUuid);
-                            playerMetaCache.put(playerUuid, playerMeta);
+                            critterCache.addPlayerMeta(playerMeta);
                         }
                         playerMeta.addMountAccess(mountAccess);
                     }
@@ -155,16 +201,33 @@ public final class MountGuard extends JavaPlugin {
      * @param savedMount the SavedMount to register
      */
     public void registerNewSavedMount(SavedMount savedMount) {
-        savedMountsCache.put(UUID.fromString(savedMount.getMountUuid()), savedMount);
+        critterCache.addSavedMount(savedMount);
         savedMountTable.save(savedMount);
     }
 
     /**
-     * Removes a SavedMount from the in-memory cache.
+     * Removes a SavedMount from the in-memory cache and the database.
      * @param savedMount the SavedMount to remove from the cache
      */
-    public void removeFromSavedMountsCache(SavedMount savedMount) {
-        savedMountsCache.remove(savedMount);
+    public void unregisterSavedMount(SavedMount savedMount) {
+        critterCache.removeSavedMount(savedMount);
+        savedMountTable.delete(savedMount);
+    }
+
+    /**
+     * Registers a new SavedPet and persists it to the database.
+     * @param savedPet the SavedPet to register
+     */
+    public void registerNewSavedPet(SavedPet savedPet) {
+        savedPetTable.save(savedPet);
+    }
+
+    /**
+     * Removes a SavedPet from the database.
+     * @param savedPet the SavedPet to remove from the cache
+     */
+    public void unregisterSavedPet(SavedPet savedPet) {
+        savedPetTable.delete(savedPet);
     }
 
     /**
@@ -215,12 +278,20 @@ public final class MountGuard extends JavaPlugin {
     }
 
     /**
-     * Returns a saved mount by its UUID from the in-memory cache.
-     * @param mountUuid the UUID of the mount to retrieve
-     * @return the SavedMount object if found, or null if not found
+     * Returns the Data Access Object (DAO) for managing SavedPet records.
+     *
+     * @return the DAO for SavedPet records
      */
-    public SavedMount getSavedMount(UUID mountUuid) {
-        return savedMountsCache.get(mountUuid);
+    public Dao<SavedPet, String> getSavedPetDao() {
+        return savedPetDao;
+    }
+
+    /**
+     * Returns the CritterCache instance.
+     * @return the CritterCache instance
+     */
+    public CritterCache getCritterCache() {
+        return critterCache;
     }
 
 }

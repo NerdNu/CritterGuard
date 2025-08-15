@@ -1,8 +1,7 @@
-package me.ppgome.mountGuard.database;
+package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.field.DatabaseField;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.UUID;
@@ -15,23 +14,23 @@ import java.util.UUID;
 public class SavedMount {
 
     // The UUID of the mount, used as the primary key in the database.
-    @DatabaseField(id = true, columnName = "mount_uuid", canBeNull = false)
+    @DatabaseField(id = true, canBeNull = false)
     private String mountUuid;
 
     // The name of the mount.
-    @DatabaseField(columnName = "mount_name")
+    @DatabaseField
     private String mountName;
 
     // The UUID of the mount owner, used to identify who owns the mount.
-    @DatabaseField(columnName = "mount_owner_uuid", canBeNull = false)
+    @DatabaseField(canBeNull = false)
     private String mountOwnerUuid;
 
     // The name of the mount owner, used to identify who owns the mount.
-    @DatabaseField(columnName = "mount_owner_name")
+    @DatabaseField
     private String mountOwnerName;
 
     // The type of the mount entity (e.g., "horse", "camel", etc.).
-    @DatabaseField(columnName = "entity_type", canBeNull = false)
+    @DatabaseField(canBeNull = false)
     private String entityType; // Store as EntityType.name()
 
     // The date when the mount was last locked or saved.

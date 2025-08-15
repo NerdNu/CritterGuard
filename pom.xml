@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>me.ppgome</groupId>
-    <artifactId>MountGuard</artifactId>
+    <artifactId>CritterGuard</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
 
-    <name>mountguard</name>
+    <name>critterguard</name>
 
     <properties>
         <java.version>17</java.version>
@@ -24,8 +24,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.13.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>18</source>
+                    <target>18</target>
                     <compilerArgs>--enable-preview</compilerArgs>
                 </configuration>
             </plugin>

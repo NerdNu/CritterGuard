@@ -1,21 +1,16 @@
-package me.ppgome.mountGuard;
+package me.ppgome.critterGuard;
 
-import me.ppgome.mountGuard.database.SavedMount;
+import me.ppgome.critterGuard.database.SavedMount;
+import me.ppgome.critterGuard.database.SavedPet;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.World;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDismountEvent;
+import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.EntityTameEvent;
-import org.bukkit.event.player.PlayerToggleSneakEvent;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -23,20 +18,22 @@ import java.util.UUID;
  * This class will contain methods to handle various events such as mount spawning,
  * player interactions with mounts, and any other relevant events.
  */
-public class MGEventHandler implements Listener {
+public class CGEventHandler implements Listener {
 
-    private MountGuard plugin;
+    private CritterGuard plugin;
+    private CritterCache critterCache;
 
     //------------------------------------------------------------------------------------------------------------------
 
-    public MGEventHandler(MountGuard plugin) {
+    public CGEventHandler(CritterGuard plugin) {
         this.plugin = plugin;
+        this.critterCache = plugin.getCritterCache();
     }
 
     //------------------------------------------------------------------------------------------------------------------
 
     @EventHandler
-    public void onMountTame(EntityTameEvent event) {
+    public void onCritterTame(EntityTameEvent event) {
         Entity entity = event.getEntity();
         AnimalTamer tamer = event.getOwner();
         if(entity instanceof Horse horse) {
@@ -44,7 +41,9 @@ public class MGEventHandler implements Listener {
         } else if(entity instanceof Llama llama) {
             tameLlama(llama, tamer);
         } else if(entity instanceof AbstractHorse || entity instanceof HappyGhast) {
-            tameOther(entity, tamer);
+            tameOtherMount(entity, tamer);
+        } else {
+            tamePet(entity, tamer);
         }
     }
 
@@ -52,11 +51,11 @@ public class MGEventHandler implements Listener {
         // Implement logic to handle taming of AbstractHorse
         // For example, you might want to set the owner or perform other actions
         // when a player tames a horse.
-        SavedMount newMount = new SavedMount(horse.getUniqueId().toString(), horse.getName(),
-                tamer.getUniqueId().toString(), tamer.getName(), horse.getType().toString(),
-                horse.getColor().toString(), horse.getStyle().toString());
-        plugin.registerNewSavedMount(newMount);
         if(tamer instanceof Player player) {
+            SavedMount newMount = new SavedMount(horse.getUniqueId().toString(), horse.getName(),
+                    tamer.getUniqueId().toString(), tamer.getName(), horse.getType().toString(),
+                    horse.getColor().toString(), horse.getStyle().toString());
+            plugin.registerNewSavedMount(newMount);
             player.sendMessage(Component.text("You have tamed a " + horse.getType() + "!", NamedTextColor.GREEN));
         }
     }
@@ -65,12 +64,47 @@ public class MGEventHandler implements Listener {
         // Implement logic to handle taming of Llama
         // This could involve setting the owner or performing other actions
         // when a player tames a Llama.
-        SavedMount newMount = new SavedMount();
+        if(tamer instanceof Player player) {
+            SavedMount newMount = new SavedMount(llama.getUniqueId().toString(), llama.getName(),
+                    tamer.getUniqueId().toString(), tamer.getName(), llama.getColor().toString());
+            plugin.registerNewSavedMount(newMount);
+            player.sendMessage(Component.text("You have tamed a Llama!", NamedTextColor.GREEN));
+        }
     }
 
-    private void tameOther(Entity entity, AnimalTamer tamer) {
+    private void tameOtherMount(Entity entity, AnimalTamer tamer) {
         // Implement logic for other types of entities if needed
-        SavedMount newMount = new SavedMount();
+        if(tamer instanceof Player player) {
+            SavedMount newMount = new SavedMount(entity.getUniqueId().toString(), entity.getName(),
+                    tamer.getUniqueId().toString(), tamer.getName(), entity.getType().toString());
+            plugin.registerNewSavedMount(newMount);
+            player.sendMessage(Component.text("You have tamed a " + entity.getType() + "!", NamedTextColor.GREEN));
+        }
+    }
+
+    private void tamePet(Entity entity, AnimalTamer tamer) {
+        // Implement logic to handle taming of pets
+        // This could involve setting the owner or performing other actions
+        // when a player tames a pet.
+        if(tamer instanceof Player player) {
+            SavedPet savedPet = new SavedPet(entity.getUniqueId().toString(), entity.getName(),
+                    tamer.getUniqueId().toString(), tamer.getName(), entity.getType().toString());
+            plugin.registerNewSavedPet(savedPet);
+            player.sendMessage(Component.text("You have tamed a pet: " + entity.getType() + "!", NamedTextColor.GREEN));
+        }
+    }
+
+    @EventHandler
+    public void onCritterDeath(EntityDeathEvent event) {
+        Entity entity = event.getEntity();
+        if(!(entity instanceof Tameable tameable)) return; // Only handle tameable entities
+        if(!tameable.isTamed() || !(tameable.getOwner() instanceof Player)) return; // Only handle tamed entities with a player owner
+        UUID entityUuid = entity.getUniqueId();
+        SavedMount savedMount = critterCache.getSavedMount(entityUuid);
+        if(savedMount != null) {
+            plugin.unregisterSavedMount(savedMount);
+        } else {
+        }
     }
 
     @EventHandler
@@ -79,7 +113,7 @@ public class MGEventHandler implements Listener {
         if(!(passenger instanceof Player)) return; // Only handle player mounts
         Entity mount = event.getMount();
         UUID mountUuid = mount.getUniqueId();
-        SavedMount savedMount = plugin.getSavedMount(mountUuid);
+        SavedMount savedMount = critterCache.getSavedMount(mountUuid);
         if(savedMount != null) {
             if(mount.getPassengers().size() > 1) {
                 if(savedMount.hasAccess(passenger.getUniqueId())) return; // Player already has access to this mount

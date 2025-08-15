@@ -1,4 +1,4 @@
-package me.ppgome.mountGuard.database;
+package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.field.DatabaseField;
 

@@ -1,7 +1,7 @@
-package me.ppgome.mountGuard.database;
+package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.dao.Dao;
-import me.ppgome.mountGuard.MountGuard;
+import me.ppgome.critterGuard.CritterGuard;
 
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -15,16 +15,20 @@ public class SavedMountTable {
     // The DAO for accessing saved mounts in the database.
     private Dao<SavedMount, String> savedMountDao;
     // The instance of the MountGuard plugin.
-    private MountGuard plugin;
+    private CritterGuard plugin;
+
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * Constructor that initializes the SavedMountTable with the MountGuard plugin instance.
      * @param plugin the instance of the MountGuard plugin.
      */
-    public SavedMountTable(MountGuard plugin) {
+    public SavedMountTable(CritterGuard plugin) {
         this.plugin = plugin;
         this.savedMountDao = plugin.getSavedMountDao();
     }
+
+    //------------------------------------------------------------------------------------------------------------------
 
     /**
      * Retrieves all saved mounts from the database asynchronously.
@@ -37,6 +41,17 @@ public class SavedMountTable {
             } catch (Exception e) {
                 plugin.logError("Failed to fetch all saved mounts\n" + e.getMessage());
                 return null;
+            }
+        });
+    }
+
+    public void delete(SavedMount savedMount) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                savedMountDao.delete(savedMount);
+            } catch (Exception e) {
+                plugin.getLogger().severe("Failed to delete mount: " + savedMount.getMountName());
+                e.printStackTrace();
             }
         });
     }
