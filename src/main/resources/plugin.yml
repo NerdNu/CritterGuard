@@ -1,0 +1,7 @@
+name: MountGuard
+version: '1.0-SNAPSHOT'
+main: me.ppgome.mountGuard.MountGuard
+api-version: '1.20'
+prefix: MountGuard
+authors: [ PPGOME ]
+description: Locking and tracking for horses, camels, and happy ghasts.
