@@ -1,2 +1,2 @@
-# MountGuard
-Protect your Minecraft mounts!
+# CritterGuard
+Protect your Minecraft animals!
