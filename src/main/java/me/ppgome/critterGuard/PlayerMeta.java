@@ -1,7 +1,9 @@
 package me.ppgome.critterGuard;
 
 import me.ppgome.critterGuard.database.MountAccess;
+import me.ppgome.critterGuard.database.SavedAnimal;
 import me.ppgome.critterGuard.database.SavedMount;
+import me.ppgome.critterGuard.database.SavedPet;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -17,8 +19,8 @@ public class PlayerMeta {
     // The UUID of the player.
     private UUID uuid;
 
-    // List of mounts owned by the player.
-    private ArrayList<SavedMount> ownedList;
+    // List of animals owned by the player.
+    private ArrayList<SavedAnimal> ownedList;
 
     // List of mounts the player has access to.
     private Set<MountAccess> accessList;
@@ -35,8 +37,30 @@ public class PlayerMeta {
 
     //------------------------------------------------------------------------------------------------------------------
 
+    public void isOwnerOf(SavedAnimal savedAnimal) {
+        this.ownedList.contains(savedAnimal);
+    }
+
+    public void addOwnedMount(SavedAnimal savedAnimal) {
+        this.ownedList.add(savedAnimal);
+    }
+
+    public void removeOwnedMount(SavedAnimal savedAnimal) {
+        this.ownedList.remove(savedAnimal);
+    }
+
     public void addMountAccess(MountAccess access) {
         this.accessList.add(access);
+    }
+
+    public void removeMountAccess(MountAccess access) {
+        if(accessList.remove(access)) return;
+        for(MountAccess mountAccess : accessList) {
+            if(mountAccess.getMountUuid().equals(access.getMountUuid())) {
+                accessList.remove(mountAccess);
+                return;
+            }
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -53,7 +77,7 @@ public class PlayerMeta {
      * Gets the list of mounts owned by the player.
      * @return the list of owned mounts.
      */
-    public ArrayList<SavedMount> getOwnedList() {
+    public ArrayList<SavedAnimal> getOwnedList() {
         return ownedList;
     }
 

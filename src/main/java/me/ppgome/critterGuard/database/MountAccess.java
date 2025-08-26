@@ -25,6 +25,9 @@ public class MountAccess {
     @DatabaseField
     private boolean fullAccess;
 
+    // Indicates whether this MountAccess record is currently being added or removed.
+    private boolean beingAdded;
+
     //------------------------------------------------------------------------------------------------------------------
 
     /**
@@ -42,6 +45,18 @@ public class MountAccess {
         this.mountUuid = mountUuid;
         this.playerUuid = playerUuid;
         this.fullAccess = fullAccess;
+    }
+
+    /**
+     * Constructs a MountAccess record with the specified player UUID and access level.
+     * This is used when the mount UUID is set later.
+     * @param playerUuid the UUID of the player.
+     * @param fullAccess true if the player has full access, false if only passenger access.
+     */
+    public MountAccess(String playerUuid, boolean fullAccess, boolean beingAdded) {
+        this.playerUuid = playerUuid;
+        this.fullAccess = fullAccess;
+        this.beingAdded = beingAdded;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -109,4 +124,13 @@ public class MountAccess {
     public void setFullAccess(boolean fullAccess) {
         this.fullAccess = fullAccess;
     }
+
+    /**
+     * Returns whether this MountAccess record is currently being added or removed.
+     * @return true if this record is being added, false if it is being removed.
+     */
+    public boolean isBeingAdded() {
+        return beingAdded;
+    }
+
 }

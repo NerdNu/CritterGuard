@@ -13,7 +13,7 @@ public interface SubCommandHandler {
      * @param args   Command arguments
      * @return true if command was handled successfully
      */
-    boolean execute(CommandSender sender, String[] args);
+    void execute(CommandSender sender, String[] args);
 
     /**
      * Get tab completion suggestions

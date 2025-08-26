@@ -50,7 +50,7 @@ public class SavedMountTable {
             try {
                 savedMountDao.delete(savedMount);
             } catch (Exception e) {
-                plugin.getLogger().severe("Failed to delete mount: " + savedMount.getMountName());
+                plugin.getLogger().severe("Failed to delete mount: " + savedMount.getEntityName());
                 e.printStackTrace();
             }
         });
@@ -65,7 +65,7 @@ public class SavedMountTable {
             try {
                 savedMountDao.createOrUpdate(savedMount);
             } catch (Exception e) {
-                plugin.getLogger().severe("Failed to save mount: " + savedMount.getMountName());
+                plugin.getLogger().severe("Failed to save mount: " + savedMount.getEntityName());
                 e.printStackTrace();
             }
         });

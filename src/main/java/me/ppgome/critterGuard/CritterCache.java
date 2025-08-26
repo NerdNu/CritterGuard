@@ -3,7 +3,6 @@ package me.ppgome.critterGuard;
 import me.ppgome.critterGuard.database.MountAccess;
 import me.ppgome.critterGuard.database.SavedMount;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -27,9 +26,10 @@ public class CritterCache {
     private HashMap<UUID, PlayerMeta> playerMetaCache = new HashMap<>();
 
     /**
-     * An in-memory cache of players who ran a command that require clicking a critter.
+     * An in-memory cache of awaiting clicks for access requests.
+     * This cache is used to store player UUIDs that are waiting for access clicks.
      */
-    private HashMap<UUID, ClickReason> awaitingClickCache = new HashMap<>();
+    private HashMap<UUID, MountAccess> accessClickCache = new HashMap<>();
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ public class CritterCache {
     //------------------------------------------------------------------------------------------------------------------
 
     public void addSavedMount(SavedMount savedMount) {
-        savedMountsCache.put(UUID.fromString(savedMount.getMountUuid()), savedMount);
+        savedMountsCache.put(UUID.fromString(savedMount.getEntityUuid()), savedMount);
     }
 
     public SavedMount getSavedMount(UUID mountUuid) {
@@ -48,7 +48,7 @@ public class CritterCache {
     }
 
     public void removeSavedMount(SavedMount savedMount) {
-        savedMountsCache.remove(UUID.fromString(savedMount.getMountUuid()));
+        savedMountsCache.remove(UUID.fromString(savedMount.getEntityUuid()));
     }
 
     public void addPlayerMeta(PlayerMeta playerMeta) {
@@ -63,23 +63,21 @@ public class CritterCache {
         playerMetaCache.remove(playerUuid);
     }
 
-    public void addAwaitingClick(UUID playerUuid, ClickReason reason) {
-        awaitingClickCache.put(playerUuid, reason);
+    public void addAwaitingAccess(UUID playerUuid, MountAccess playerGettingAccess) {
+        accessClickCache.put(playerUuid, playerGettingAccess);
     }
 
-    public void getAwaitingClick(UUID playerUuid) {
-        awaitingClickCache.get(playerUuid);
+    public boolean isAwaitingAccess(UUID playerUuid) {
+        return accessClickCache.containsKey(playerUuid);
     }
 
-    public void removeAwaitingClick(UUID playerUuid) {
-        awaitingClickCache.remove(playerUuid);
+    public void removeAwaitingAccess(UUID playerUuid) {
+        accessClickCache.remove(playerUuid);
     }
 
-    //------------------------------------------------------------------------------------------------------------------
-    public enum ClickReason {
-        ACCESS,
-        UNTAME,
-        INFO
+    public MountAccess getAwaitingAccess(UUID playerUuid) {
+        MountAccess mountAccess = accessClickCache.get(playerUuid);
+        removeAwaitingAccess(playerUuid);
+        return mountAccess;
     }
-
 }

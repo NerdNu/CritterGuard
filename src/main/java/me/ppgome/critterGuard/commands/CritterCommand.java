@@ -1,24 +1,29 @@
 package me.ppgome.critterGuard.commands;
 
+import me.ppgome.critterGuard.CGConfig;
 import me.ppgome.critterGuard.CritterGuard;
+import me.ppgome.critterGuard.MessageUtil;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
-public class CritterCommand {
+public class CritterCommand implements CommandExecutor, TabCompleter {
 
-    private CritterGuard plugin;
+    private CGConfig config;
 
     private final Map<String, SubCommandHandler> subCommands = new HashMap<>();
 
     //------------------------------------------------------------------------------------------------------------------
 
     public CritterCommand(CritterGuard plugin) {
-        this.plugin = plugin;
+        this.config = plugin.getCGConfig();
         registerSubCommand(new AccessSubCommand(plugin));
+        registerSubCommand(new ListSubCommand(plugin));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -27,10 +32,12 @@ public class CritterCommand {
         subCommands.put(subCommandHandler.getCommandName(), subCommandHandler);
     }
 
-    public boolean execute(CommandSender sender, String[] args) {
+
+    @Override
+    public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] args) {
         if (args.length == 0) {
-            sender.sendMessage("Usage: /critter <subcommand> [args]");
-            return false;
+            sender.sendMessage(MessageUtil.failedMessage(config.PREFIX, "Usage: /critter <subcommand> [args]"));
+            return true;
         }
 
         String subCommandName = args[0].toLowerCase();
@@ -38,23 +45,25 @@ public class CritterCommand {
 
         if (subCommandHandler == null) {
             sender.sendMessage("Unknown subcommand: " + subCommandName);
-            return false;
+            return true;
         }
 
-        if(sender.hasPermission(subCommandHandler.getPermission())) {
-            sender.sendMessage("You do not have permission to use this command.");
-            return false;
+        if(!sender.hasPermission(subCommandHandler.getPermission())) {
+            sender.sendMessage(MessageUtil.failedMessage(config.PREFIX, "You do not have permission" +
+                    " to use this command."));
+            return true;
         }
 
         if (args.length < subCommandHandler.getMinArgs()) {
-            sender.sendMessage(subCommandHandler.getUsage());
-            return false;
+            sender.sendMessage(MessageUtil.failedMessage(config.PREFIX, subCommandHandler.getUsage()));
+            return true;
         }
-
-        return subCommandHandler.execute(sender, args);
+        subCommandHandler.execute(sender, Arrays.copyOfRange(args, 1, args.length));
+        return true;
     }
 
-    public List<String> tabComplete(CommandSender sender, String[] args) {
+    @Override
+    public @Nullable List<String> onTabComplete(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] args) {
         if (args.length == 1) {
             return subCommands.keySet().stream()
                     .filter(name -> {
@@ -66,7 +75,6 @@ public class CritterCommand {
                     .toList();
         }
 
-        // More than one argument - delegate to subcommand
         if (args.length > 1) {
             String subCommandName = args[0].toLowerCase();
             SubCommandHandler subCommand = subCommands.get(subCommandName);
@@ -74,15 +82,11 @@ public class CritterCommand {
             if (subCommand != null) {
                 String permission = subCommand.getPermission();
                 if (permission == null || sender.hasPermission(permission)) {
-                    String[] subArgs = Arrays.copyOfRange(args, 1, args.length);
-                    return subCommand.tabComplete(sender, subArgs);
+                    return subCommand.tabComplete(sender, Arrays.copyOfRange(args, 1, args.length));
                 }
             }
         }
 
-        return List.of();
+        return new ArrayList<>();
     }
-
-
-
 }

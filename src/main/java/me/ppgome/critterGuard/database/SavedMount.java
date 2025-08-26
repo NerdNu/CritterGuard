@@ -11,38 +11,14 @@ import java.util.UUID;
  * This class is used to store information about mounts such as horses, camels, llamas, donkeys, mules, and happy ghasts.
  * It includes fields for the mount's UUID, name, owner UUID and name, entity type, lock date, color, style, and access list.
  */
-public class SavedMount {
-
-    // The UUID of the mount, used as the primary key in the database.
-    @DatabaseField(id = true, canBeNull = false)
-    private String mountUuid;
-
-    // The name of the mount.
-    @DatabaseField
-    private String mountName;
-
-    // The UUID of the mount owner, used to identify who owns the mount.
-    @DatabaseField(canBeNull = false)
-    private String mountOwnerUuid;
-
-    // The name of the mount owner, used to identify who owns the mount.
-    @DatabaseField
-    private String mountOwnerName;
-
-    // The type of the mount entity (e.g., "horse", "camel", etc.).
-    @DatabaseField(canBeNull = false)
-    private String entityType; // Store as EntityType.name()
+public class SavedMount extends SavedAnimal {
 
     // The date when the mount was last locked or saved.
-    @DatabaseField(columnName = "lock_date")
+    @DatabaseField
     private Date lockDate;
 
-    // The color of the mount, applicable for horses and llamas (e.g., "CHESTNUT", "BROWN", etc.).
-    @DatabaseField(columnName = "color")
-    private String color;
-
     // The style of the mount, applicable for horses (e.g., "BLACK_DOTS", "WHITE", etc.).
-    @DatabaseField(columnName = "style")
+    @DatabaseField
     private String style;
 
     // A list of UUIDs and their corresponding access levels for the mount.
@@ -67,10 +43,10 @@ public class SavedMount {
      */
     public SavedMount(String mountUuid, String mountName, String mountOwnerUuid, String mountOwnerName,
                       String entityType, String color, String style) {
-        this.mountUuid = mountUuid;
-        this.mountName = mountName;
-        this.mountOwnerUuid = mountOwnerUuid;
-        this.mountOwnerName = mountOwnerName;
+        this.entityUuid = mountUuid;
+        this.entityName = mountName;
+        this.entityOwnerUuid = mountOwnerUuid;
+        this.entityOwnerName = mountOwnerName;
         this.entityType = entityType;
         this.color = color;
         this.style = style;
@@ -88,10 +64,10 @@ public class SavedMount {
      */
     public SavedMount(String mountUuid, String mountName, String mountOwnerUuid, String mountOwnerName,
                       String entityType, String color) {
-        this.mountUuid = mountUuid;
-        this.mountName = mountName;
-        this.mountOwnerUuid = mountOwnerUuid;
-        this.mountOwnerName = mountOwnerName;
+        this.entityUuid = mountUuid;
+        this.entityName = mountName;
+        this.entityOwnerUuid = mountOwnerUuid;
+        this.entityOwnerName = mountOwnerName;
         this.entityType = entityType;
         this.color = color;
         this.style = null; // Llamas do not have a style
@@ -108,10 +84,10 @@ public class SavedMount {
      */
     public SavedMount(String mountUuid, String mountName, String mountOwnerUuid, String mountOwnerName,
                       String entityType) {
-        this.mountUuid = mountUuid;
-        this.mountName = mountName;
-        this.mountOwnerUuid = mountOwnerUuid;
-        this.mountOwnerName = mountOwnerName;
+        this.entityUuid = mountUuid;
+        this.entityName = mountName;
+        this.entityOwnerUuid = mountOwnerUuid;
+        this.entityOwnerName = mountOwnerName;
         this.entityType = entityType;
         this.color = null; // Donkeys, mules, camels, and ghasts do not have a color
         this.style = null; // Donkeys, mules, camels, and ghasts
@@ -120,95 +96,6 @@ public class SavedMount {
 
     //------------------------------------------------------------------------------------------------------------------
 
-    /**
-     * Gets the UUID of the mount.
-     * This is used to uniquely identify the mount in the database.
-     * @return the UUID of the mount
-     */
-    public String getMountUuid() {
-        return mountUuid;
-    }
-
-    /**
-     * Sets the UUID of the mount.
-     * This is used to uniquely identify the mount in the database.
-     * @param mountUuid the UUID of the mount
-     */
-    public void setMountUuid(String mountUuid) {
-        this.mountUuid = mountUuid;
-    }
-
-    /**
-     * Gets the name of the mount.
-     * This is used to identify the mount in the database and by players.
-     * @return the name of the mount
-     */
-    public String getMountName() {
-        return mountName;
-    }
-
-    /**
-     * Sets the name of the mount.
-     * This is used to identify the mount in the database and by players.
-     * @param mountName the name of the mount
-     */
-    public void setMountName(String mountName) {
-        this.mountName = mountName;
-    }
-
-    /**
-     * Gets the UUID of the mount owner.
-     * This is used to identify who owns the mount.
-     * @return the UUID of the mount owner
-     */
-    public String getMountOwnerUuid() {
-        return mountOwnerUuid;
-    }
-
-    /**
-     * Sets the UUID of the mount owner.
-     * This is used to identify who owns the mount.
-     * @param mountOwnerUuid the UUID of the mount owner
-     */
-    public void setMountOwnerUuid(String mountOwnerUuid) {
-        this.mountOwnerUuid = mountOwnerUuid;
-    }
-
-    /**
-     * Gets the name of the mount owner.
-     * This is used to identify who owns the mount.
-     * @return the name of the mount owner
-     */
-    public String getMountOwnerName() {
-        return mountOwnerName;
-    }
-
-    /**
-     * Sets the name of the mount owner.
-     * This is used to identify who owns the mount.
-     * @param mountOwnerName the name of the mount owner
-     */
-    public void setMountOwnerName(String mountOwnerName) {
-        this.mountOwnerName = mountOwnerName;
-    }
-
-    /**
-     * Gets the entity type for the mount.
-     * This is used to identify the type of mount (e.g., "horse", "camel", etc.).
-     * @return the type of the mount entity
-     */
-    public String getEntityType() {
-        return entityType;
-    }
-
-    /**
-     * Sets the entity type for the mount.
-     * This is used to identify the type of mount (e.g., "horse", "camel", etc.).
-     * @param entityType the type of the mount entity
-     */
-    public void setEntityType(String entityType) {
-        this.entityType = entityType;
-    }
 
     /**
      * Gets the lock date for the mount.
@@ -226,24 +113,6 @@ public class SavedMount {
      */
     public void setLockDate(Date lockDate) {
         this.lockDate = lockDate;
-    }
-
-    /**
-     * Gets the color of the mount.
-     * This is applicable for horses and llamas.
-     * @return the color of the mount (e.g., "CHESTNUT", "BROWN", etc.)
-     */
-    public String getColor() {
-        return color;
-    }
-
-    /**
-     * Sets the color of the mount.
-     * This is applicable for horses and llamas.
-     * @param color the color of the mount (e.g., "CHESTNUT", "BROWN", etc.)
-     */
-    public void setColor(String color) {
-        this.color = color;
     }
 
     /**

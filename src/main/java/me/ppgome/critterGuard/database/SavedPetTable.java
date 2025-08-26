@@ -3,6 +3,7 @@ package me.ppgome.critterGuard.database;
 import com.j256.ormlite.dao.Dao;
 import me.ppgome.critterGuard.CritterGuard;
 
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public class SavedPetTable {
@@ -31,13 +32,33 @@ public class SavedPetTable {
      * @return the SavedPet object, or null if not found.
      */
     public CompletableFuture<SavedPet> getSavedPet(String petUuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return savedPetDao.queryForId(petUuid);
+            } catch (Exception e) {
+                plugin.logError("Failed to retrieve pet with UUID: " + petUuid + "\n" + e.getMessage());
+                return null;
+            }
+        });
     }
+
+    public CompletableFuture<List<SavedPet>> getAllSavedPets() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return savedPetDao.queryForAll();
+            } catch (Exception e) {
+                plugin.logError("Failed to fetch all saved pets\n" + e.getMessage());
+                return null;
+            }
+        });
+    }
+
     public void delete(SavedPet savedPet) {
         CompletableFuture.runAsync(() -> {
             try {
                 savedPetDao.delete(savedPet);
             } catch (Exception e) {
-                plugin.logError("Failed to delete pet: " + savedPet.getPetName() + "\n" + e.getMessage());
+                plugin.logError("Failed to delete pet: " + savedPet.getEntityUuid() + "\n" + e.getMessage());
             }
         });
     }
@@ -47,7 +68,7 @@ public class SavedPetTable {
             try {
                 savedPetDao.createOrUpdate(savedPet);
             } catch (Exception e) {
-                plugin.logError("Failed to save pet: " + savedPet.getPetName() + "\n" + e.getMessage());
+                plugin.logError("Failed to save pet: " + savedPet.getEntityUuid() + "\n" + e.getMessage());
             }
         });
     }

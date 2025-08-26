@@ -9,12 +9,10 @@ import me.ppgome.critterGuard.commands.CritterCommand;
 import me.ppgome.critterGuard.database.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
-import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -27,10 +25,16 @@ import java.util.concurrent.CompletableFuture;
 public final class CritterGuard extends JavaPlugin {
 
     /**
+     * The configuration for the MountGuard plugin.
+     * This object holds various settings and options for the plugin.
+     */
+    CGConfig config;
+
+    /**
      * The URL for the SQLite database used by the MountGuard plugin.
      * This database stores information about mount access permissions and saved mounts.
      */
-    private static final String DATABASE_URL = "jdbc:sqlite:plugins/MountGuard/MountGuard.db";
+    private static final String DATABASE_URL = "jdbc:sqlite:plugins/CritterGuard/CritterGuard.db";
 
     /**
      * The connection source for the SQLite database.
@@ -91,33 +95,19 @@ public final class CritterGuard extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
+        config = new CGConfig(this);
         setupDatabase();
         loadDatabaseData();
         critterCache = new CritterCache(this);
         getServer().getPluginManager().registerEvents(new CGEventHandler(this), this);
-        this.getCommand("critter").setExecutor(critterCommand(this));
+        critterCommand = new CritterCommand(this);
+        this.getCommand("critter").setExecutor(critterCommand);
 
     }
 
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-    }
-
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("critter")) {
-            return critterCommand.execute(sender, args);
-        }
-        return false;
-    }
-
-    @Override
-    public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
-        if (command.getName().equalsIgnoreCase("critter")) {
-            return critterCommand.tabComplete(sender, args);
-        }
-        return null;
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -145,6 +135,7 @@ public final class CritterGuard extends JavaPlugin {
             // Create tables if they do not exist
             TableUtils.createTableIfNotExists(connectionSource, MountAccess.class);
             TableUtils.createTableIfNotExists(connectionSource, SavedMount.class);
+            TableUtils.createTableIfNotExists(connectionSource, SavedPet.class);
 
         } catch (SQLException e) {
             logError("Failed to set up database" + e.getMessage());
@@ -160,33 +151,36 @@ public final class CritterGuard extends JavaPlugin {
 
         CompletableFuture<List<SavedMount>> savedMountsFuture = savedMountTable.getAllSavedMounts();
         CompletableFuture<List<MountAccess>> mountAccessFuture = mountAccessTable.getAllMountAccess();
+        CompletableFuture<List<SavedPet>> savedPetsFuture = savedPetTable.getAllSavedPets();
 
-        CompletableFuture.allOf(savedMountsFuture, mountAccessFuture).thenRun(() -> {
+        CompletableFuture.allOf(savedMountsFuture, mountAccessFuture, savedPetsFuture).thenRun(() -> {
             try {
                 List<SavedMount> savedMounts = savedMountsFuture.get();
                 List<MountAccess> mountAccesses = mountAccessFuture.get();
+                List<SavedPet> savedPets = savedPetsFuture.get();
 
                 // Initialize the in-memory cache for saved mounts
                 if(savedMounts != null) {
                     for(SavedMount savedMount : savedMounts) {
                         critterCache.addSavedMount(savedMount);
+                        registerNewPlayer(UUID.fromString(savedMount.getEntityOwnerUuid())).addOwnedMount(savedMount);
                     }
                     logInfo("Loaded " + savedMounts.size() + " saved mounts from the database.");
                 }
 
+                // Initialize the in-memory cache for mount accesses
                 if(mountAccesses != null) {
                     for(MountAccess mountAccess : mountAccesses) {
-                        UUID playerUuid = UUID.fromString(mountAccess.getPlayerUuid());
-                        PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
-                        // If player meta is not in cache, create a new one
-                        // and add the mount access to it.
-                        // This allows us to keep track of which mounts a player has access to.
-                        if (playerMeta == null) {
-                            playerMeta = new PlayerMeta(playerUuid);
-                            critterCache.addPlayerMeta(playerMeta);
-                        }
-                        playerMeta.addMountAccess(mountAccess);
+                        registerNewPlayer(UUID.fromString(mountAccess.getPlayerUuid())).addMountAccess(mountAccess);
                     }
+                }
+
+                // Initialize the in-memory cache for saved pets
+                if(savedPets != null) {
+                    for(SavedPet savedPet : savedPets) {
+                        registerNewPlayer(UUID.fromString(savedPet.getEntityOwnerUuid())).addOwnedMount(savedPet);
+                    }
+                    logInfo("Loaded " + savedPets.size() + " saved pets from the database.");
                 }
 
             } catch (Exception e) {
@@ -197,37 +191,47 @@ public final class CritterGuard extends JavaPlugin {
     }
 
     /**
-     * Adds a new SavedMount to the in-memory cache and persists it to the database.
-     * @param savedMount the SavedMount to register
+     * Registers a new player by adding their UUID to the in-memory cache.
+     * If the player already exists in the cache, this method does nothing.
+     * @param playerUuid the UUID of the player to register
      */
-    public void registerNewSavedMount(SavedMount savedMount) {
-        critterCache.addSavedMount(savedMount);
-        savedMountTable.save(savedMount);
+    public PlayerMeta registerNewPlayer(UUID playerUuid) {
+        PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
+        if(playerMeta == null) {
+            playerMeta = new PlayerMeta(playerUuid);
+            critterCache.addPlayerMeta(playerMeta);
+        }
+        return playerMeta;
+    }
+
+    /**
+     * Adds a new SavedMount to the in-memory cache and persists it to the database.
+     * @param savedAnimal the SavedAnimal to register
+     */
+    public void registerNewSavedAnimal(@NotNull SavedAnimal savedAnimal) {
+        UUID playerUuid = UUID.fromString(savedAnimal.getEntityOwnerUuid());
+        registerNewPlayer(playerUuid);
+        critterCache.getPlayerMeta(playerUuid).addOwnedMount(savedAnimal);
+        if(savedAnimal instanceof SavedMount savedMount) {
+            critterCache.addSavedMount(savedMount);
+            savedMountTable.save(savedMount);
+        } else {
+            savedPetTable.save((SavedPet) savedAnimal);
+        }
     }
 
     /**
      * Removes a SavedMount from the in-memory cache and the database.
-     * @param savedMount the SavedMount to remove from the cache
+     * @param savedAnimal the SavedAnimal to remove from the cache
      */
-    public void unregisterSavedMount(SavedMount savedMount) {
-        critterCache.removeSavedMount(savedMount);
-        savedMountTable.delete(savedMount);
-    }
-
-    /**
-     * Registers a new SavedPet and persists it to the database.
-     * @param savedPet the SavedPet to register
-     */
-    public void registerNewSavedPet(SavedPet savedPet) {
-        savedPetTable.save(savedPet);
-    }
-
-    /**
-     * Removes a SavedPet from the database.
-     * @param savedPet the SavedPet to remove from the cache
-     */
-    public void unregisterSavedPet(SavedPet savedPet) {
-        savedPetTable.delete(savedPet);
+    public void unregisterSavedMount(SavedAnimal savedAnimal) {
+        critterCache.getPlayerMeta(UUID.fromString(savedAnimal.getEntityOwnerUuid())).removeOwnedMount(savedAnimal);
+        if(savedAnimal instanceof SavedMount savedMount) {
+            critterCache.removeSavedMount(savedMount);
+            savedMountTable.delete(savedMount);
+        }else {
+            savedPetTable.delete((SavedPet) savedAnimal);
+        }
     }
 
     /**
@@ -249,13 +253,13 @@ public final class CritterGuard extends JavaPlugin {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Returns the connection source for the SQLite database.
-     * This connection source is used to establish connections to the database for performing CRUD operations.
+     * Returns the configuration object for the MountGuard plugin.
+     * This object contains various settings and options for the plugin.
      *
-     * @return the connection source for the database
+     * @return the configuration object
      */
-    public ConnectionSource getConnectionSource() {
-        return connectionSource;
+    public CGConfig getCGConfig() {
+        return config;
     }
 
     /**
@@ -284,6 +288,18 @@ public final class CritterGuard extends JavaPlugin {
      */
     public Dao<SavedPet, String> getSavedPetDao() {
         return savedPetDao;
+    }
+
+    public MountAccessTable getMountAccessTable() {
+        return mountAccessTable;
+    }
+
+    public SavedMountTable getSavedMountTable() {
+        return savedMountTable;
+    }
+
+    public SavedPetTable getSavedPetTable() {
+        return savedPetTable;
     }
 
     /**

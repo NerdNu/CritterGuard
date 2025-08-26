@@ -1,7 +1,15 @@
-name: MountGuard
+name: CritterGuard
 version: '1.0-SNAPSHOT'
-main: me.ppgome.mountGuard.MountGuard
-api-version: '1.20'
-prefix: MountGuard
+main: me.ppgome.critterGuard.CritterGuard
+api-version: '1.21.6'
+prefix: CritterGuard
 authors: [ PPGOME ]
 description: Locking and tracking for horses, camels, and happy ghasts.
+
+commands:
+  critter:
+    description: Main command for CritterGuard plugin.
+    usage: /<command> <subcommand>
+    aliases: [cg]
+    permission: critterguard.use
+    permission-message: You do not have permission to use this command.
