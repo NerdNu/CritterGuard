@@ -39,11 +39,9 @@ public class AccessSubCommand implements SubCommandHandler {
             OfflinePlayer playerBeingAdded = Bukkit.getOfflinePlayer(playerName);
 
             // Check if player exists (has played before)
-            if (!playerBeingAdded.hasPlayedBefore()) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
-                            "Player " + playerName + " does not exist."));
-                });
+            if (!playerBeingAdded.hasPlayedBefore() && !playerBeingAdded.isOnline()) {
+                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
+                        "Player " + playerName + " does not exist.")));
                 return;
             }
 
@@ -55,18 +53,14 @@ public class AccessSubCommand implements SubCommandHandler {
 
             // Validate arguments
             if (!isAdd && !isRemove) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
-                            "Invalid action. Use 'add' or 'remove'."));
-                });
+                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
+                        "Invalid action. Use 'add' or 'remove'.")));
                 return;
             }
 
             if (!isFullAccess && !isPassengerAccess) {
-                Bukkit.getScheduler().runTask(plugin, () -> {
-                    player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
-                            "Invalid access type. Use 'full' or 'passenger'."));
-                });
+                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
+                        "Invalid access type. Use 'full' or 'passenger'.")));
                 return;
             }
 
@@ -129,6 +123,6 @@ public class AccessSubCommand implements SubCommandHandler {
 
     @Override
     public int getMinArgs() {
-        return 4;
+        return 3;
     }
 }

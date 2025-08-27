@@ -2,6 +2,8 @@ package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.field.DatabaseField;
 
+import java.util.UUID;
+
 public class SavedAnimal {
 
     // The UUID of the mount, used as the primary key in the database.
@@ -16,10 +18,6 @@ public class SavedAnimal {
     @DatabaseField(canBeNull = false)
     String entityOwnerUuid;
 
-    // The name of the mount owner, used to identify who owns the mount.
-    @DatabaseField
-    String entityOwnerName;
-
     // The type of the mount entity (e.g., "horse", "camel", etc.).
     @DatabaseField(canBeNull = false)
     String entityType; // Store as EntityType.name()
@@ -28,7 +26,14 @@ public class SavedAnimal {
     @DatabaseField
     String color;
 
+    // The numeric index of the entity, used for sorting or ordering purposes.
+    int index;
+
     //------------------------------------------------------------------------------------------------------------------
+
+    public boolean isOwner(UUID playerUuid) {
+        return entityOwnerUuid.equals(playerUuid.toString());
+    }
 
     /**
      * Gets the UUID of the mount.
@@ -85,24 +90,6 @@ public class SavedAnimal {
     }
 
     /**
-     * Gets the name of the mount owner.
-     * This is used to identify who owns the mount.
-     * @return the name of the mount owner
-     */
-    public String setEntityOwnerName() {
-        return entityOwnerName;
-    }
-
-    /**
-     * Sets the name of the mount owner.
-     * This is used to identify who owns the mount.
-     * @param mountOwnerName the name of the mount owner
-     */
-    public void setEntityOwnerName(String mountOwnerName) {
-        this.entityOwnerName = mountOwnerName;
-    }
-
-    /**
      * Gets the entity type for the mount.
      * This is used to identify the type of mount (e.g., "horse", "camel", etc.).
      * @return the type of the mount entity
@@ -136,6 +123,22 @@ public class SavedAnimal {
      */
     public void setColor(String color) {
         this.color = color;
+    }
+
+    /**
+     * Gets the index of the entity.
+     * @return the index of the entity
+     */
+    public int getIndex() {
+        return index;
+    }
+
+    /**
+     * Sets the index of the entity.
+     * @param index the index to set for the entity
+     */
+    public void setIndex(int index) {
+        this.index = index;
     }
 
 }

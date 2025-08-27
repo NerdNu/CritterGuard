@@ -24,6 +24,9 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
         this.config = plugin.getCGConfig();
         registerSubCommand(new AccessSubCommand(plugin));
         registerSubCommand(new ListSubCommand(plugin));
+        registerSubCommand(new GPSSubCommand(plugin));
+        registerSubCommand(new TPSubCommand(plugin));
+        registerSubCommand(new TPHereSubCommand(plugin));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -54,7 +57,7 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (args.length < subCommandHandler.getMinArgs()) {
+        if (args.length < subCommandHandler.getMinArgs() + 1) {
             sender.sendMessage(MessageUtil.failedMessage(config.PREFIX, subCommandHandler.getUsage()));
             return true;
         }

@@ -1,6 +1,7 @@
 package me.ppgome.critterGuard;
 
 import me.ppgome.critterGuard.database.MountAccess;
+import me.ppgome.critterGuard.database.SavedAnimal;
 import me.ppgome.critterGuard.database.SavedMount;
 
 import java.util.HashMap;
@@ -19,7 +20,7 @@ public class CritterCache {
      */
     private HashMap<UUID, SavedMount> savedMountsCache = new HashMap<>();
 
-    /**
+    /**s
      * An in-memory cache of PlayerMeta objects.
      * This cache is used to store all PlayerMetas for quick retrieval.
      */

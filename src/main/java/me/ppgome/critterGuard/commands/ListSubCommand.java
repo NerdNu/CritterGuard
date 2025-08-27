@@ -8,9 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Animals;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Wolf;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,6 +64,7 @@ public class ListSubCommand implements SubCommandHandler {
             case 2:
                 isEntityType = entityTypes.contains(args[0].toLowerCase());
                 isPageNumber = args[1].matches("\\d+");
+                player.sendMessage(isEntityType + " " + isPageNumber);
                 if(isEntityType && isPageNumber) {
                     getData(player, args[0].toLowerCase(), critterCache.getPlayerMeta(player.getUniqueId()),
                             Integer.parseInt(args[1]));
@@ -73,6 +72,8 @@ public class ListSubCommand implements SubCommandHandler {
                     getDataAsync(player, args[0].toLowerCase(), getPlayerMeta(args[1]), 1);
                 } else if(isPageNumber) {
                     getDataAsync(player, "all", getPlayerMeta(args[0]), Integer.parseInt(args[1]));
+                } else {
+                    player.sendMessage(MessageUtil.failedMessage(config.PREFIX, getUsage()));
                 }
                 break;
                 // Three arguments provided. Should be entity type, player name, and page number.
@@ -81,6 +82,8 @@ public class ListSubCommand implements SubCommandHandler {
                 isEntityType = entityTypes.contains(args[0].toLowerCase());
                 if(isEntityType && isPageNumber) {
                     getDataAsync(player, args[0].toLowerCase(), getPlayerMeta(args[1]), Integer.parseInt(args[2]));
+                } else {
+                    player.sendMessage(MessageUtil.failedMessage(config.PREFIX, getUsage()));
                 }
                 break;
         }
@@ -115,7 +118,8 @@ public class ListSubCommand implements SubCommandHandler {
     private void getDataAsync(Player player, String entityType, CompletableFuture<PlayerMeta> playerMeta, int page) {
         playerMeta.thenAccept(meta -> Bukkit.getScheduler().runTask(plugin, () -> {
             if (meta != null && !meta.getOwnedList().isEmpty()) {
-                outputList(getAnimalsPerPage(meta.getOwnedList(), entityType, page), player);
+                Bukkit.getScheduler().runTask(plugin, () ->
+                        outputList(getAnimalsPerPage(meta.getOwnedList(), entityType, page), player));
             } else {
                 player.sendMessage(MessageUtil.failedMessage(config.PREFIX, "That player doesn't exist" +
                         " or has no critters."));
@@ -133,8 +137,6 @@ public class ListSubCommand implements SubCommandHandler {
      */
     private List<SavedAnimal> getAnimalsPerPage(List<SavedAnimal> animalList, String entityType, int page) {
 
-        System.out.println(animalList);
-
         List<SavedAnimal> filteredList = new ArrayList<>();
 
         if (entityType.equals("all")) {
@@ -147,11 +149,14 @@ public class ListSubCommand implements SubCommandHandler {
             }
         }
 
-        int totalPages = (int) Math.ceil((double) animalList.size() / 5); // Calculate total pages based on 5 items per page
+        if(filteredList.isEmpty()) return new ArrayList<>();
+
+        int totalPages = (int) Math.ceil((double) filteredList.size() / 5); // Calculate total pages based on 5 items per page
+        if(page < 1) page = 1; // Ensure page is at least 1
         if (page > totalPages) page = totalPages; // Ensure page does not exceed total pages
 
         int startIndex = (page - 1) * 5; // Calculate start index for the page
-        int endIndex = Math.min(startIndex + 5, animalList.size()); // Calculate end index, ensuring it does not exceed the list size
+        int endIndex = Math.min(startIndex + 5, filteredList.size()); // Calculate end index, ensuring it does not exceed the list size
         return filteredList.subList(startIndex, endIndex); // Return the sublist for the current page
     }
 
@@ -170,7 +175,6 @@ public class ListSubCommand implements SubCommandHandler {
                 .append(Component.text("Critter List", NamedTextColor.GOLD))
                 .append(Component.text(" ====----", NamedTextColor.GRAY))
                 .appendNewline();
-        int index = 1;
         for (SavedAnimal animal : animalList) {
             String Uuid = animal.getEntityUuid().substring(0, 8);
             String name = animal.getEntityName() != null ? animal.getEntityName() : "No name";
@@ -178,16 +182,14 @@ public class ListSubCommand implements SubCommandHandler {
             String color = animal.getColor() != null ? animal.getColor() : "N/A";
             Location location = Bukkit.getEntity(UUID.fromString(animal.getEntityUuid())).getLocation();
             message = message.appendNewline()
-                    .append(Component.text("[" + index + "] ", NamedTextColor.GOLD))
+                    .append(Component.text("[" + animal.getIndex() + "] ", NamedTextColor.GOLD))
                     .append(Component.text(Uuid + "... ", NamedTextColor.GRAY))
                     .append(Component.text(name, NamedTextColor.GREEN)).appendNewline()
-                    .append(Component.text("     Type: " + type, NamedTextColor.BLUE)).appendNewline()
-                    .append(Component.text("     Color: " + MessageUtil.capitalizeFirstLetter(color),
+                    .append(Component.text("     Type: " + type, NamedTextColor.BLUE))
+                    .append(Component.text(" Color: " + MessageUtil.capitalizeFirstLetter(color),
                             NamedTextColor.YELLOW)).appendNewline()
-                    .append(Component.text("     Location: " + location.getBlockX()
-                            + ", " + location.getBlockY()
-                            + ", " + location.getBlockZ()
-                                    + " in world: " + location.getWorld().getName(), NamedTextColor.RED));
+                    .append(Component.text("     "))
+                    .append(MessageUtil.locationBuilder(location, NamedTextColor.RED));
         }
         player.sendMessage(message);
     }
@@ -223,11 +225,11 @@ public class ListSubCommand implements SubCommandHandler {
 
     @Override
     public String getPermission() {
-        return "";
+        return "critterguard.list";
     }
 
     @Override
     public int getMinArgs() {
-        return 1;
+        return 0;
     }
 }

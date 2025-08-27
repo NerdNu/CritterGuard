@@ -29,7 +29,6 @@ public class SavedPet extends SavedAnimal {
         this.entityUuid = petUuid;
         this.entityName = petName;
         this.entityOwnerUuid = ownerUuid;
-        this.entityOwnerName = ownerName;
         this.entityType = petType;
         this.color = color;
         this.petSoundType = petSoundType;
@@ -48,7 +47,6 @@ public class SavedPet extends SavedAnimal {
         this.entityUuid = petUuid;
         this.entityName = petName;
         this.entityOwnerUuid = ownerUuid;
-        this.entityOwnerName = ownerName;
         this.entityType = petType;
         this.color = color;
     }

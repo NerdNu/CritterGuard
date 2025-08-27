@@ -9,6 +9,9 @@ import me.ppgome.critterGuard.commands.CritterCommand;
 import me.ppgome.critterGuard.database.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
@@ -107,7 +110,9 @@ public final class CritterGuard extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
+        for(Player player : Bukkit.getOnlinePlayers()) {
+            processPlayerLogout(player);
+        }
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -160,10 +165,13 @@ public final class CritterGuard extends JavaPlugin {
                 List<SavedPet> savedPets = savedPetsFuture.get();
 
                 // Initialize the in-memory cache for saved mounts
+                PlayerMeta playerMeta;
                 if(savedMounts != null) {
                     for(SavedMount savedMount : savedMounts) {
                         critterCache.addSavedMount(savedMount);
-                        registerNewPlayer(UUID.fromString(savedMount.getEntityOwnerUuid())).addOwnedMount(savedMount);
+                        playerMeta = registerNewPlayer(UUID.fromString(savedMount.getEntityOwnerUuid()));
+                        savedMount.setIndex(playerMeta.getOwnedList().size() + 1);
+                        playerMeta.addOwnedMount(savedMount);
                     }
                     logInfo("Loaded " + savedMounts.size() + " saved mounts from the database.");
                 }
@@ -172,13 +180,18 @@ public final class CritterGuard extends JavaPlugin {
                 if(mountAccesses != null) {
                     for(MountAccess mountAccess : mountAccesses) {
                         registerNewPlayer(UUID.fromString(mountAccess.getPlayerUuid())).addMountAccess(mountAccess);
+                        critterCache.getSavedMount(UUID.fromString(mountAccess.getMountUuid()))
+                                .addAccess(UUID.fromString(mountAccess.getPlayerUuid()), mountAccess);
                     }
+                    logInfo("Loaded " + mountAccesses.size() + " saved mounts from the database.");
                 }
 
                 // Initialize the in-memory cache for saved pets
                 if(savedPets != null) {
                     for(SavedPet savedPet : savedPets) {
-                        registerNewPlayer(UUID.fromString(savedPet.getEntityOwnerUuid())).addOwnedMount(savedPet);
+                        playerMeta = registerNewPlayer(UUID.fromString(savedPet.getEntityOwnerUuid()));
+                        savedPet.setIndex(playerMeta.getOwnedList().size() + 1);
+                        playerMeta.addOwnedMount(savedPet);
                     }
                     logInfo("Loaded " + savedPets.size() + " saved pets from the database.");
                 }
@@ -211,7 +224,9 @@ public final class CritterGuard extends JavaPlugin {
     public void registerNewSavedAnimal(@NotNull SavedAnimal savedAnimal) {
         UUID playerUuid = UUID.fromString(savedAnimal.getEntityOwnerUuid());
         registerNewPlayer(playerUuid);
-        critterCache.getPlayerMeta(playerUuid).addOwnedMount(savedAnimal);
+        PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
+        savedAnimal.setIndex(playerMeta.getOwnedList().size() + 1);
+        playerMeta.addOwnedMount(savedAnimal);
         if(savedAnimal instanceof SavedMount savedMount) {
             critterCache.addSavedMount(savedMount);
             savedMountTable.save(savedMount);
@@ -229,8 +244,55 @@ public final class CritterGuard extends JavaPlugin {
         if(savedAnimal instanceof SavedMount savedMount) {
             critterCache.removeSavedMount(savedMount);
             savedMountTable.delete(savedMount);
-        }else {
+            for(MountAccess mountAccess : savedMount.getAccessList().values()) {
+                mountAccessTable.delete(mountAccess);
+            }
+        } else {
             savedPetTable.delete((SavedPet) savedAnimal);
+        }
+    }
+
+    /**
+     * Processes the death of an animal by removing its saved data from the cache and database.
+     * This method checks if the entity is a saved mount or pet and removes it accordingly.
+     * @param entityUuid the UUID of the entity that died
+     */
+    public void processAnimalDeath(UUID entityUuid) {
+        SavedMount savedMount = critterCache.getSavedMount(entityUuid);
+        if(savedMount != null) {
+            unregisterSavedMount(savedMount);
+            logInfo("Removed saved mount " + savedMount.getEntityName() + " due to death.");
+        } else {
+            savedPetTable.getSavedPet(entityUuid.toString()).thenAccept(savedPet -> {
+                if(savedPet != null) {
+                    Bukkit.getScheduler().runTask(this, () -> {
+                        PlayerMeta playerMeta = critterCache.getPlayerMeta(UUID.fromString(savedPet.getEntityOwnerUuid()));
+                        if(playerMeta != null) {
+                            SavedAnimal realAnimal = playerMeta.getOwnedMountByUuid(entityUuid);
+                            if(realAnimal != null) {
+                                playerMeta.removeOwnedMount(realAnimal);
+                            }
+                        }
+                        savedPetTable.delete(savedPet);
+                        logInfo("Removed saved pet " + savedPet.getEntityName() + " due to death.");
+                    });
+                }
+            });
+        }
+    }
+
+    /**
+     * Processes a player's logout event.
+     * If the player is riding a mount that they do not own, they will be ejected from the mount.
+     * @param player the player who is logging out
+     */
+    public void processPlayerLogout(Player player) {
+        Entity vehicle = player.getVehicle();
+        if(vehicle != null) {
+            SavedMount savedMount = critterCache.getSavedMount(vehicle.getUniqueId());
+            if(savedMount != null && !savedMount.isOwner(player.getUniqueId())) {
+                vehicle.eject();
+            }
         }
     }
 
@@ -239,7 +301,7 @@ public final class CritterGuard extends JavaPlugin {
      * @param message the message to log
      */
     public void logInfo(String message) {
-        getComponentLogger().info(Component.text("[MountGuard]" + message));
+        getComponentLogger().info(Component.text(message));
     }
 
     /**
@@ -247,7 +309,7 @@ public final class CritterGuard extends JavaPlugin {
      * @param message the error message to log
      */
     public void logError(String message) {
-        getComponentLogger().error(Component.text("[MountGuard]" + message), NamedTextColor.RED);
+        getComponentLogger().error(Component.text(message), NamedTextColor.RED);
     }
 
     //------------------------------------------------------------------------------------------------------------------

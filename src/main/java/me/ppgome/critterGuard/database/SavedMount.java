@@ -46,7 +46,6 @@ public class SavedMount extends SavedAnimal {
         this.entityUuid = mountUuid;
         this.entityName = mountName;
         this.entityOwnerUuid = mountOwnerUuid;
-        this.entityOwnerName = mountOwnerName;
         this.entityType = entityType;
         this.color = color;
         this.style = style;
@@ -67,7 +66,6 @@ public class SavedMount extends SavedAnimal {
         this.entityUuid = mountUuid;
         this.entityName = mountName;
         this.entityOwnerUuid = mountOwnerUuid;
-        this.entityOwnerName = mountOwnerName;
         this.entityType = entityType;
         this.color = color;
         this.style = null; // Llamas do not have a style
@@ -87,7 +85,6 @@ public class SavedMount extends SavedAnimal {
         this.entityUuid = mountUuid;
         this.entityName = mountName;
         this.entityOwnerUuid = mountOwnerUuid;
-        this.entityOwnerName = mountOwnerName;
         this.entityType = entityType;
         this.color = null; // Donkeys, mules, camels, and ghasts do not have a color
         this.style = null; // Donkeys, mules, camels, and ghasts
@@ -157,6 +154,14 @@ public class SavedMount extends SavedAnimal {
      */
     public boolean hasAccess(UUID uuid) {
         return this.accessList.containsKey(uuid);
+    }
+
+    /**
+     * Gets the access list for the mount.
+     * @return a HashMap of UUIDs and their corresponding access levels
+     */
+    public HashMap<UUID, MountAccess> getAccessList() {
+        return accessList;
     }
 
     /**

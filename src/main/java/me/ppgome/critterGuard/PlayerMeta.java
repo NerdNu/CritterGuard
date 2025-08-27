@@ -37,8 +37,13 @@ public class PlayerMeta {
 
     //------------------------------------------------------------------------------------------------------------------
 
-    public void isOwnerOf(SavedAnimal savedAnimal) {
-        this.ownedList.contains(savedAnimal);
+    /**
+     * Checks if the player is the owner of the given SavedAnimal.
+     * @param savedAnimal the SavedAnimal to check ownership for.
+     * @return true if the player owns the SavedAnimal, false otherwise.
+     */
+    public boolean isOwnerOf(SavedAnimal savedAnimal) {
+        return this.ownedList.contains(savedAnimal);
     }
 
     public void addOwnedMount(SavedAnimal savedAnimal) {
@@ -87,6 +92,18 @@ public class PlayerMeta {
      */
     public Set<MountAccess> getAccessList() {
         return accessList;
+    }
+
+    /**
+     * Retrieves a owned mount by its UUID.
+     * @param mountUuid the UUID of the mount to retrieve.
+     * @return the SavedAnimal if found, null otherwise.
+     */
+    public SavedAnimal getOwnedMountByUuid(UUID mountUuid) {
+        for(SavedAnimal savedAnimal : ownedList) {
+            if(savedAnimal.getEntityUuid().equals(mountUuid.toString())) return savedAnimal;
+        }
+        return null;
     }
 
 }

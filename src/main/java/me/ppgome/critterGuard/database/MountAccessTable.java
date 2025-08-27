@@ -43,16 +43,34 @@ public class MountAccessTable {
     }
 
     /**
+     * Deletes a mount access relationship from the database asynchronously.
+     * @param mountAccess the MountAccess object to be deleted.
+     */
+    public void delete(MountAccess mountAccess) {
+        CompletableFuture.runAsync(() -> {
+            try {
+                mountAccessDao.delete(mountAccess);
+            } catch (Exception e) {
+                plugin.getLogger().severe("Failed to delete mount access for user: " + mountAccess.getPlayerUuid()
+                        + " on mount: " + mountAccess.getMountUuid());
+                e.printStackTrace();
+            }
+        });
+    }
+
+    /**
      * Saves a new or updated mount access relationship to the database asynchronously.
      * @param mountAccess the MountAccess object to be saved.
      */
     public void save(MountAccess mountAccess) {
-        try {
-            mountAccessDao.createOrUpdate(mountAccess);
-        } catch (Exception e) {
-            plugin.logError("Failed to save mount access for " + mountAccess.getPlayerUuid() + " on " +
-                    mountAccess.getMountUuid() + ":\n" + e.getMessage());
-        }
+        CompletableFuture.runAsync(() -> {
+            try {
+                mountAccessDao.createOrUpdate(mountAccess);
+            } catch (Exception e) {
+                plugin.logError("Failed to save mount access for " + mountAccess.getPlayerUuid() + " on " +
+                        mountAccess.getMountUuid() + ":\n" + e.getMessage());
+            }
+        });
     }
 
 }

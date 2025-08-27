@@ -1,6 +1,9 @@
 package me.ppgome.critterGuard;
 
+import io.papermc.paper.event.player.PlayerNameEntityEvent;
 import me.ppgome.critterGuard.database.*;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -9,7 +12,11 @@ import org.bukkit.event.entity.EntityMountEvent;
 import org.bukkit.event.entity.EntityTameEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerToggleSneakEvent;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -50,7 +57,6 @@ public class CGEventHandler implements Listener {
 
     @EventHandler
     public void onCritterTame(EntityTameEvent event) {
-        System.out.println("tamed");
         Entity entity = event.getEntity();
         AnimalTamer tamer = event.getOwner();
 
@@ -100,14 +106,8 @@ public class CGEventHandler implements Listener {
     @EventHandler
     public void onCritterDeath(EntityDeathEvent event) {
         Entity entity = event.getEntity();
-        if(!(entity instanceof Tameable tameable)) return; // Only handle tameable entities
-        if(!tameable.isTamed() || !(tameable.getOwner() instanceof Player)) return; // Only handle tamed entities with a player owner
-        UUID entityUuid = entity.getUniqueId();
-        SavedMount savedMount = critterCache.getSavedMount(entityUuid);
-        if(savedMount != null) {
-            plugin.unregisterSavedMount(savedMount);
-        } else {
-        }
+        if(!(entity instanceof Tameable || entity instanceof HappyGhast)) return; // Only handle tameable entities
+        plugin.processAnimalDeath(entity.getUniqueId());
     }
 
     @EventHandler
@@ -120,7 +120,7 @@ public class CGEventHandler implements Listener {
         UUID entityUuid = entity.getUniqueId();
         SavedMount savedMount = critterCache.getSavedMount(entityUuid);
 
-        if (savedMount == null || !isOwner(playerUuid, savedMount) || !critterCache.isAwaitingAccess(playerUuid)) {
+        if (savedMount == null || savedMount.isOwner(playerUuid) || !critterCache.isAwaitingAccess(playerUuid)) {
             return;
         }
 
@@ -134,17 +134,6 @@ public class CGEventHandler implements Listener {
         }
 
         event.setCancelled(true);
-    }
-
-    /**
-     * Checks if the player is the owner of the mount.
-     *
-     * @param playerUuid The UUID of the player.
-     * @param savedMount The SavedMount object to check against.
-     * @return true if the player is the owner, false otherwise.
-     */
-    private boolean isOwner(UUID playerUuid, SavedMount savedMount) {
-        return playerUuid.equals(UUID.fromString(savedMount.getEntityOwnerUuid()));
     }
 
     /**
@@ -246,6 +235,35 @@ public class CGEventHandler implements Listener {
     }
 
     @EventHandler
+    public void onPlayerNameEntity(PlayerNameEntityEvent event) {
+        UUID entityUuid = event.getEntity().getUniqueId(); // The entity being named
+        Player player = event.getPlayer(); // The player who is naming the entity
+        PlayerMeta playerMeta = critterCache.getPlayerMeta(player.getUniqueId());
+        if(event.getName() == null) return; // No name provided
+
+        if(playerMeta != null) {
+            SavedAnimal savedAnimal = playerMeta.getOwnedMountByUuid(entityUuid);
+            if(savedAnimal != null) {
+                String newName = PlainTextComponentSerializer.plainText().serialize(event.getName());
+                SavedMount savedMount = critterCache.getSavedMount(entityUuid);
+                if(savedMount != null) {
+                    savedMount.setEntityName(newName);
+                    savedMountTable.save(savedMount);
+                } else {
+                    savedAnimal.setEntityName(newName);
+                    savedPetTable.getSavedPet(entityUuid.toString()).thenAccept(savedPet -> {
+                        if(savedPet != null) {
+                            savedPet.setEntityName(newName);
+                            savedPetTable.save(savedPet);
+                        }
+                    });
+                }
+            }
+        }
+
+    }
+
+    @EventHandler
     public void onEntityMount(EntityMountEvent event) {
         Entity passenger = event.getEntity();
         if(!(passenger instanceof Player player)) return; // Only handle player mounts
@@ -255,16 +273,17 @@ public class CGEventHandler implements Listener {
         // Handle a saved mount
         SavedMount savedMount = critterCache.getSavedMount(mountUuid);
         if(savedMount != null) {
-            if(mount.getPassengers().size() > 1) {
-                if(savedMount.hasAccess(passenger.getUniqueId())) return; // Player already has access to this mount
-            } else if(savedMount.hasFullAccess(passenger.getUniqueId()) || isOwner(passenger.getUniqueId(), savedMount)) return;
-            else {
-                // Player does not have access, prevent mounting
-                event.setCancelled(true);
-                passenger.sendMessage(MessageUtil.failedMessage(config.PREFIX, "You do not have permission" +
-                        " to mount this entity."));
-                return;
-            }
+            if(!mount.getPassengers().isEmpty()) {
+                // Player has passenger access or is the owner, allow mounting
+                if(savedMount.hasAccess(passenger.getUniqueId()) || savedMount.isOwner(passenger.getUniqueId())) return;
+                // Player has full access, allow mounting
+            } else if(savedMount.hasFullAccess(passenger.getUniqueId()) || savedMount.isOwner(passenger.getUniqueId())) return;
+
+            // Player does not have access, prevent mounting
+            event.setCancelled(true);
+            passenger.sendMessage(MessageUtil.failedMessage(config.PREFIX, "You do not have permission" +
+                    " to mount this entity."));
+            return;
         }
 
         if (mount instanceof Camel || mount instanceof HappyGhast) {
@@ -277,25 +296,57 @@ public class CGEventHandler implements Listener {
 
     }
 
-//    @EventHandler
-//    public void onSneakToggle(PlayerToggleSneakEvent event) {
-//        if(!event.isSneaking()) return;
-//        Player player = event.getPlayer();
-//        Entity mount = player.getVehicle();
-//        if(mount != null) {
-//            if(mount instanceof AbstractHorse || mount instanceof HappyGhast) {
-//                List<Entity> passengers = new ArrayList<>(mount.getPassengers());
-//                List<Entity> modifiedPassengers = new ArrayList<>();
-//                modifiedPassengers.add(passengers.getLast());
-//                passengers.removeLast();
-//                modifiedPassengers.addAll(passengers);
-//                Bukkit.getScheduler().runTaskLater(plugin, mount::eject, 2L);
-//                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-//                    for(Entity passenger : modifiedPassengers) {
-//                        mount.addPassenger(passenger);
-//                    }
-//                }, 2L);
-//            }
-//        }
-//    }
+    @EventHandler
+    public void onSneakToggle(PlayerToggleSneakEvent event) {
+        if(!event.isSneaking()) return;
+        Player player = event.getPlayer();
+        Entity mount = player.getVehicle();
+        if((mount instanceof Camel || mount instanceof HappyGhast)) {
+                List<Entity> passengers = new ArrayList<>(mount.getPassengers());
+                if(!passengers.getFirst().getUniqueId().equals(player.getUniqueId()) && passengers.size() > 1) return;
+                List<Entity> modifiedPassengers = new ArrayList<>();
+                passengers.removeFirst();
+
+                PlayerMeta playerMeta;
+                SavedMount savedMount = critterCache.getSavedMount(mount.getUniqueId());
+                for(Entity entity : passengers) {
+                    playerMeta = critterCache.getPlayerMeta(entity.getUniqueId());
+                    if((playerMeta != null && savedMount.hasFullAccess(entity.getUniqueId()) ||
+                            savedMount.isOwner(entity.getUniqueId()))) {
+                        modifiedPassengers.add(entity);
+                        passengers.remove(entity);
+                        modifiedPassengers.addAll(passengers);
+                        Bukkit.getScheduler().runTaskLater(plugin, mount::eject, 2L);
+                        if(!(entity instanceof Player playerTakingOver)) continue;
+                        for(Entity passenger : modifiedPassengers) {
+                            Bukkit.getScheduler().runTaskLater(plugin, () -> mount.addPassenger(passenger), 2L);
+                            passenger.sendMessage(MessageUtil.normalMessage(config.PREFIX,
+                                    playerTakingOver.getName() + " is now controlling this mount."));
+                        }
+                        return;
+                    }
+                    for(Entity passenger : passengers) {
+                        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                            mount.removePassenger(passenger);
+                            passenger.sendMessage(MessageUtil.failedMessage(config.PREFIX, "There are no" +
+                                    " passengers with full access to this mount. Dismounting all passengers."));
+                        }, 3L);
+                    }
+                }
+
+            }
+
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        Player player = event.getPlayer();
+        Entity vehicle = player.getVehicle();
+        if(vehicle != null) {
+            SavedMount savedMount = critterCache.getSavedMount(vehicle.getUniqueId());
+            if(savedMount != null && savedMount.isOwner(player.getUniqueId())) {
+                vehicle.eject();
+            }
+        }
+    }
 }
