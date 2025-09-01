@@ -1,9 +1,13 @@
 package me.ppgome.critterGuard.commands;
 
 import me.ppgome.critterGuard.CGConfig;
+import me.ppgome.critterGuard.CritterCache;
 import me.ppgome.critterGuard.CritterGuard;
-import me.ppgome.critterGuard.MessageUtil;
+import me.ppgome.critterGuard.utility.MessageUtils;
 import me.ppgome.critterGuard.database.MountAccess;
+import me.ppgome.critterGuard.utility.PlaceholderParser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -16,9 +20,10 @@ public class AccessSubCommand implements SubCommandHandler {
 
     private final CritterGuard plugin;
     private CGConfig config;
+    private CritterCache critterCache;
 
     /**
-     * Constructor for CritterAccessCommand.
+     * Constructor for AccessSubCommand.
      * Initializes the command with the plugin instance.
      *
      * @param plugin The instance of the CritterGuard plugin.
@@ -26,6 +31,7 @@ public class AccessSubCommand implements SubCommandHandler {
     public AccessSubCommand(CritterGuard plugin) {
         this.plugin = plugin;
         this.config = plugin.getCGConfig();
+        this.critterCache = plugin.getCritterCache();
     }
 
     // /critter access <add/remove> <full/passenger> <playername>
@@ -40,8 +46,8 @@ public class AccessSubCommand implements SubCommandHandler {
 
             // Check if player exists (has played before)
             if (!playerBeingAdded.hasPlayedBefore() && !playerBeingAdded.isOnline()) {
-                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
-                        "Player " + playerName + " does not exist.")));
+                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(PlaceholderParser
+                        .of(config.ACCESS_NO_PLAYER).player(playerName).parse()));
                 return;
             }
 
@@ -52,15 +58,8 @@ public class AccessSubCommand implements SubCommandHandler {
             boolean isPassengerAccess = args[1].equalsIgnoreCase("passenger");
 
             // Validate arguments
-            if (!isAdd && !isRemove) {
-                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
-                        "Invalid action. Use 'add' or 'remove'.")));
-                return;
-            }
-
-            if (!isFullAccess && !isPassengerAccess) {
-                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
-                        "Invalid access type. Use 'full' or 'passenger'.")));
+            if (!isAdd && !isRemove || !isFullAccess && !isPassengerAccess) {
+                Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(getUsage()));
                 return;
             }
 
@@ -73,25 +72,42 @@ public class AccessSubCommand implements SubCommandHandler {
 
             Bukkit.getScheduler().runTask(plugin, () -> {
                 UUID senderUuid = player.getUniqueId();
-                plugin.getCritterCache().addAwaitingAccess(senderUuid, mountAccess);
-                player.sendMessage(MessageUtil.warningMessage(config.PREFIX,
-                        " Right-click the critter to "
-                                + (isAdd ? "grant" : "revoke") + " "
-                                + (isFullAccess ? "full" : "passenger") + " access to "
-                                + playerBeingAdded.getName() + "."));
+                critterCache.addAwaitingAccess(senderUuid, mountAccess);
+                sendClickMessage(player, playerBeingAdded, isAdd, isFullAccess);
 
                 // Set timeout
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (plugin.getCritterCache().isAwaitingAccess(senderUuid)) {
-                        plugin.getCritterCache().removeAwaitingAccess(senderUuid);
+                    if (critterCache.isAwaitingAccess(senderUuid)) {
+                        critterCache.removeAwaitingAccess(senderUuid);
                         if (player.isOnline()) {
-                            player.sendMessage(MessageUtil.failedMessage(config.PREFIX,
-                                    "Access request timed out for " + playerBeingAdded.getName() + "."));
+                            player.sendMessage(config.CLICK_TIMEOUT);
                         }
                     }
                 }, 20L * 15L); // 15 seconds timeout
             });
         });
+    }
+
+    public void sendClickMessage(Player player, OfflinePlayer playerBeingAdded, boolean isAdd, boolean isFullAccess) {
+        String message;
+        if(isAdd) {
+            if(isFullAccess) {
+                message = config.CLICK_GRANT_FULL_ACCESS;
+            } else {
+                message = config.CLICK_GRANT_PASSENGER_ACCESS;
+            }
+        } else {
+            if(isFullAccess) {
+                message = config.CLICK_REVOKE_FULL_ACCESS;
+            } else {
+                message = config.CLICK_REVOKE_PASSENGER_ACCESS;
+            }
+        }
+        player.sendMessage(PlaceholderParser
+                .of(message)
+                .player(playerBeingAdded.getName())
+                .click()
+                .parse());
     }
 
     @Override
@@ -112,8 +128,9 @@ public class AccessSubCommand implements SubCommandHandler {
     }
 
     @Override
-    public String getUsage() {
-        return "Usage: /critter access <add/remove> <full/passenger> <playername>";
+    public Component getUsage() {
+        return MessageUtils.miniMessageDeserialize(config.PREFIX +
+                " <red>Usage: /critter access <add/remove> <full/passenger> <playername></red>");
     }
 
     @Override

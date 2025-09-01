@@ -1,25 +1,13 @@
-package me.ppgome.critterGuard;
+package me.ppgome.critterGuard.utility;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Location;
 
-public class MessageUtil {
+public class MessageUtils {
 
-    private static final MiniMessage miniMessage = MiniMessage.miniMessage();
-
-    public static Component normalMessage(String prefix, String message) {
-        return miniMessage.deserialize(prefix).append(Component.text(" " + message, NamedTextColor.GREEN));
-    }
-
-    public static Component warningMessage(String prefix, String message) {
-        return miniMessage.deserialize(prefix).append(Component.text(" " + message, NamedTextColor.GOLD));
-    }
-
-    public static Component failedMessage(String prefix, String message) {
-        return miniMessage.deserialize(prefix).append(Component.text(" " + message, NamedTextColor.RED));
-    }
+    private static MiniMessage mm = MiniMessage.miniMessage();
 
     public static String capitalizeFirstLetter(String str) {
         if (str == null || str.isEmpty()) return str;
@@ -31,6 +19,10 @@ public class MessageUtil {
                 + ", " + location.getBlockY()
                 + ", " + location.getBlockZ()
                 + " in world: " + location.getWorld().getName(), color);
+    }
+
+    public static Component miniMessageDeserialize(String message) {
+        return mm.deserialize(message);
     }
 
 }

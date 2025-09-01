@@ -3,9 +3,9 @@ package me.ppgome.critterGuard;
 import me.ppgome.critterGuard.database.MountAccess;
 import me.ppgome.critterGuard.database.SavedAnimal;
 import me.ppgome.critterGuard.database.SavedMount;
+import org.bukkit.OfflinePlayer;
 
-import java.util.HashMap;
-import java.util.UUID;
+import java.util.*;
 
 public class CritterCache {
 
@@ -32,6 +32,10 @@ public class CritterCache {
      */
     private HashMap<UUID, MountAccess> accessClickCache = new HashMap<>();
 
+    private HashMap<UUID, OfflinePlayer> tameClickCache = new HashMap<>();
+
+    private Set<UUID> untameClickCache = new HashSet<>();
+
     //------------------------------------------------------------------------------------------------------------------
 
     public CritterCache(CritterGuard plugin) {
@@ -40,6 +44,7 @@ public class CritterCache {
 
     //------------------------------------------------------------------------------------------------------------------
 
+    // -------- Saved Mount Cache
     public void addSavedMount(SavedMount savedMount) {
         savedMountsCache.put(UUID.fromString(savedMount.getEntityUuid()), savedMount);
     }
@@ -51,6 +56,8 @@ public class CritterCache {
     public void removeSavedMount(SavedMount savedMount) {
         savedMountsCache.remove(UUID.fromString(savedMount.getEntityUuid()));
     }
+
+    // -------- Player Meta Cache
 
     public void addPlayerMeta(PlayerMeta playerMeta) {
         playerMetaCache.put(playerMeta.getUuid(), playerMeta);
@@ -64,6 +71,8 @@ public class CritterCache {
         playerMetaCache.remove(playerUuid);
     }
 
+    // -------- Access Click Cache
+
     public void addAwaitingAccess(UUID playerUuid, MountAccess playerGettingAccess) {
         accessClickCache.put(playerUuid, playerGettingAccess);
     }
@@ -72,13 +81,49 @@ public class CritterCache {
         return accessClickCache.containsKey(playerUuid);
     }
 
-    public void removeAwaitingAccess(UUID playerUuid) {
-        accessClickCache.remove(playerUuid);
-    }
-
     public MountAccess getAwaitingAccess(UUID playerUuid) {
         MountAccess mountAccess = accessClickCache.get(playerUuid);
         removeAwaitingAccess(playerUuid);
         return mountAccess;
     }
+
+    public void removeAwaitingAccess(UUID playerUuid) {
+        accessClickCache.remove(playerUuid);
+    }
+
+    // -------- Tame Click Cache
+
+    public void addAwaitingTame(UUID playerUuid, OfflinePlayer playerTaming) {
+        tameClickCache.put(playerUuid, playerTaming);
+    }
+
+    public boolean isAwaitingTame(UUID playerUuid) {
+        return tameClickCache.containsKey(playerUuid);
+    }
+
+
+    public OfflinePlayer getAwaitingTame(UUID playerUuid) {
+        OfflinePlayer playerTaming = tameClickCache.get(playerUuid);
+        removeAwaitingTame(playerUuid);
+        return playerTaming;
+    }
+
+    public void removeAwaitingTame(UUID playerUuid) {
+        tameClickCache.remove(playerUuid);
+    }
+
+    // -------- Untame Click Cache
+
+    public void addAwaitingUntame(UUID playerUuid) {
+        untameClickCache.add(playerUuid);
+    }
+
+    public boolean isAwaitingUntame(UUID playerUuid) {
+        return untameClickCache.contains(playerUuid);
+    }
+
+    public void removeAwaitingUntame(UUID playerUuid) {
+        untameClickCache.remove(playerUuid);
+    }
+
 }

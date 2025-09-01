@@ -1,1 +1,159 @@
 pluginPrefix: "<gold>[</gold><green>CritterGuard</green><gold>]</gold>"
+
+toggles:
+  canBreedLockedAnimals: true
+
+messages:
+  access:
+    # Sent to the player receiving full access to a mount
+    # PLACEHOLDER: <player> is replaced with the name of the player granting access
+    grantedFullAccess: "<green>You have been granted full access to <yellow><player>'s</yellow> mount.</green>"
+
+    # Sent to the player receiving passenger access to a mount
+    # PLACEHOLDER: <player> is replaced with the name of the player granting access
+    grantedPassengerAccess: "<green>You have been granted passenger access to <yellow><player>'s</yellow> mount.</green>"
+
+    # Sent to a player when they grant full access to another player
+    # PLACEHOLDER: <player> is replaced with the name of the player receiving access
+    targetGrantedFullAccess: "<green>You have granted <yellow><player></yellow> full access to this entity.</green>"
+
+    # Sent to a player when they grant passenger access to another player
+    # PLACEHOLDER: <player> is replaced with the name of the player receiving access
+    targetGrantedPassengerAccess: "<green>You have granted <yellow><player></yellow> passenger access to this entity.</green>"
+
+    # Sent to a player when their full access to a mount is revoked
+    # PLACEHOLDER: <player> is replaced with the name of the player revoking access
+    revokedFullAccess: "<green>Your full access to <yellow><player>'s</yellow> mount has been revoked.</green>"
+
+    # Sent to a player when their passenger access to a mount is revoked
+    # PLACEHOLDER: <player> is replaced with the name of the player revoking access
+    revokedPassengerAccess: "<green>Your passenger access to <yellow><player>'s</yellow> mount has been revoked.</green>"
+
+    # Sent to a player when they revoke full access from another player
+    # PLACEHOLDER: <player> is replaced with the name of the player losing access
+    targetRevokedFullAccess: "<green>You have revoked <yellow><player></yellow>'s full access to this mount.</green>"
+
+    # Sent to a player when they revoke passenger access from another player
+    # PLACEHOLDER: <player> is replaced with the name of the player losing access
+    targetRevokedPassengerAccess: "<green>You have revoked <yellow><player></yellow>'s passenger access to this mount.</green>"
+
+    # When a player tries to grant passenger access to a player that already has access
+    alreadyHasAccess: "<red>That player already has access to this mount.</red>"
+
+    # When a player tries to revoke access from a player that doesn't have access
+    alreadyHasNoAccess: "<red>That player does not have access to this mount.</red>"
+
+    # When a player tries to interact with an entity that doesn't support multiple passengers
+    entityDoesNotSupportPassengers: "<red>This entity does not support passenger access.</red>"
+
+    # When the provided username doesn't match any players who've played on the server before
+    # PLACEHOLDER: <player> is replaced with the username provided by the player
+    unableToFindPlayer: "<red>Unable to find player <yellow><player></yellow>.</red>"
+
+  gps:
+    # When no critters match the identifier provided by the player
+    # PLACEHOLDER: <identifier> is replaced with the identifier they provided
+    noMatch: "<red>No critters found matching <yellow><identifier></yellow>.</red>"
+
+    # When the player who belongs to the provided username doesn't have any data with the plugin
+    # This usually means they have no critters tamed
+    noPlayerData: "<red>Player data not found.</red>"
+
+  list:
+    # When a player uses /critter list <player> but the player doesn't exist or has no critters
+    doesntExistOrOwn: "<red>No players found with that name, or they do not own any critters.</red>"
+
+    # When a player uses /critter list but no critters match the criteria specified by the parameters
+    noneMatched: "<red>No critters found for the specified criteria.</red>"
+
+  permission:
+    # When a player tries to use a command they don't have permission for
+    command: "<red>You do not have permission to use this command.</red>"
+
+    # When a player tries to interact with an entity they don't have permission for
+    interact: "<red>You do not have permission to interact with this entity.</red>"
+
+    # When a player tries to mount an entity that supports multiple passengers, nobody with control
+    # access is present, and they have passenger access.
+    mount: "<red>You do not have permission to mount this entity alone.</red>"
+
+  seatSwapping:
+    # When a player successfully swaps seats to take control of a mount
+    # PLACEHOLDER: <player> is replaced with the player's name
+    success: "<yellow><player></yellow><green> is now controlling this mount.</green>"
+
+    # When a player controlling a mount dismounts and there are no other passengers with full access
+    failure: "<red>There are no passengers with full access to this mount. Dismounting all passengers.</red>"
+
+  taming:
+    # When a player successfully tames a critter to themselves through normal means
+    tamingToThemselves: "<green>You have tamed this critter!</green>"
+
+    # When a player successfully tames a critter to another player using /critter tame <player>
+    # PLACEHOLDER: <player> is replaced with the target player's name
+    tamingToOthers: "<green>You have tamed this critter to <yellow><player></yellow>.</green>"
+
+    # When a player untames a critter.
+    untame: "<green>You have untamed this critter.</green>"
+
+    # When an untamed entity is clicked after running /critter untame
+    notTamed: "<red>This critter isn't tamed.</red>"
+
+    # When a player tries to untame a critter that isn't theirs and they don't have permission to bypass
+    notYours: "<red>This critter isn't yours.</red>"
+
+  teleport:
+    # Sent to a player when they teleport to someone's critter
+    # PLACEHOLDER: <player> is replaced with the name of the player who owns the critter that's being teleported to
+    teleportTo: "<green>Teleported to <yellow><player>'s</yellow> critter."
+
+    # Sent to a player when they teleport someone's critter to themselves
+    # PLACEHOLDER: <player> is replaced with the name of the player who owns the critter that's being teleported
+    teleportHere: "<green>Teleported <yellow><player>'s</yellow> critter to you."
+
+    # When the provided username doesn't match any players who've played on the server before
+    # PLACEHOLDER: <player> is replaced with the username provided by the player
+    unableToFindPlayer: "<red>Unable to find player <yellow><player></yellow>.</red>"
+
+    # When the player who belongs to the provided username doesn't have any data with the plugin
+    # This usually means they have no critters tamed
+    noPlayerData: "<red>Player data not found.</red>"
+
+    # When the player exists and has critters but the provided identifier doesn't match any of their critters
+    # PLACEHOLDER: <player> is replaced with the username provided by the player
+    # PLACEHOLDER: <identifier> is replaced with the identifier provided by the player
+    noMatch: "<red>No critter found matching <yellow><identifier><>/yellow> for player <yellow><player></yellow>.</red>"
+
+  clickActions:
+
+    # When a player is prompted to click a mount to grant full access to another player
+    # PLACEHOLDER: <button> is replaced with the name of the button they need to press
+    # PLACEHOLDER: <player> is replaced with the name of the player receiving access
+    toGrantFullAccess: "<green>Use <yellow><button></yellow> on a mount to grant full access to <yellow><player></yellow>.</green>"
+
+    # When a player is prompted to click a mount to grant passenger access to another player
+    # PLACEHOLDER: <button> is replaced with the name of the button they need to press
+    # PLACEHOLDER: <player> is replaced with the name of the player receiving access
+    toGrantPassengerAccess: "<green>Use <yellow><button></yellow> on a mount to grant passenger access to <yellow><player></yellow>.</green>"
+
+    # When a player is prompted to click a mount to revoke full access from another player
+    # PLACEHOLDER: <button> is replaced with the name of the button they need to press
+    # PLACEHOLDER: <player> is replaced with the name of the player losing access
+    toRevokeFullAccess: "<green>Use <yellow><button></yellow> on a mount to revoke full access from <yellow><player></yellow>.</green>"
+
+    # When a player is prompted to click a mount to revoke passenger access from another player
+    # PLACEHOLDER: <button> is replaced with the name of the button they need to press
+    # PLACEHOLDER: <player> is replaced with the name of the player losing access
+    toRevokePassengerAccess: "<green>Use <yellow><button></yellow> on a mount to revoke passenger access from <yellow><player></yellow>.</green>"
+
+    # When a player is prompted to click a critter to tame it to another player
+    # PLACEHOLDER: <button> is replaced with the name of the button they need to press
+    # PLACEHOLDER: <player> is replaced with the name of the player
+    toTameToOthers: "<green>Use <yellow><button></yellow> on a critter to tame it to <yellow><player></yellow>.</green>"
+
+    # When a player is prompted to click a critter to untame it
+    # PLACEHOLDER: <button> is replaced with the name of the button they need to press
+    toUntame: "<green>Use <yellow><button></yellow> on a critter to untame it.</green>"
+
+    # When a player takes too long to respond to a click action prompt
+    timeout: "<red>Request timed out. Please try again.</red>"

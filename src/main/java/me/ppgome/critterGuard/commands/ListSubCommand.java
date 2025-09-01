@@ -2,6 +2,7 @@ package me.ppgome.critterGuard.commands;
 
 import me.ppgome.critterGuard.*;
 import me.ppgome.critterGuard.database.SavedAnimal;
+import me.ppgome.critterGuard.utility.MessageUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -23,7 +24,7 @@ public class ListSubCommand implements SubCommandHandler {
     private List<String> entityTypes;
 
     /**
-     * Constructor for CritterAccessCommand.
+     * Constructor for ListSubCommand.
      * Initializes the command with the plugin instance.
      *
      * @param plugin The instance of the CritterGuard plugin.
@@ -73,7 +74,7 @@ public class ListSubCommand implements SubCommandHandler {
                 } else if(isPageNumber) {
                     getDataAsync(player, "all", getPlayerMeta(args[0]), Integer.parseInt(args[1]));
                 } else {
-                    player.sendMessage(MessageUtil.failedMessage(config.PREFIX, getUsage()));
+                    player.sendMessage(getUsage());
                 }
                 break;
                 // Three arguments provided. Should be entity type, player name, and page number.
@@ -83,9 +84,11 @@ public class ListSubCommand implements SubCommandHandler {
                 if(isEntityType && isPageNumber) {
                     getDataAsync(player, args[0].toLowerCase(), getPlayerMeta(args[1]), Integer.parseInt(args[2]));
                 } else {
-                    player.sendMessage(MessageUtil.failedMessage(config.PREFIX, getUsage()));
+                    player.sendMessage(getUsage());
                 }
                 break;
+            default:
+                player.sendMessage(getUsage());
         }
     }
 
@@ -99,12 +102,13 @@ public class ListSubCommand implements SubCommandHandler {
      */
     private void getData(Player player, String entityType, PlayerMeta playerMeta, int page) {
         if(playerMeta != null && !playerMeta.getOwnedList().isEmpty()){
-                outputList(getAnimalsPerPage(playerMeta.getOwnedList(), entityType, page), player);
-                return;
+            List<SavedAnimal> filteredList = getFilteredList(playerMeta.getOwnedList(), entityType);
+            int totalPages = 0;
+            if(!filteredList.isEmpty()) totalPages = (int) Math.ceil((double) filteredList.size() / 5); // Calculate total pages based on 5 items per page
+            outputList(getAnimalsPerPage(filteredList, page, totalPages), player, page, totalPages);
+        } else {
+            player.sendMessage(config.LIST_DOES_NOT_EXIST_OR_OWN);
         }
-
-        player.sendMessage(MessageUtil.failedMessage(config.PREFIX, "Player " + player.getName() +
-                " does not exist or has no critters."));
     }
 
     /**
@@ -118,25 +122,19 @@ public class ListSubCommand implements SubCommandHandler {
     private void getDataAsync(Player player, String entityType, CompletableFuture<PlayerMeta> playerMeta, int page) {
         playerMeta.thenAccept(meta -> Bukkit.getScheduler().runTask(plugin, () -> {
             if (meta != null && !meta.getOwnedList().isEmpty()) {
-                Bukkit.getScheduler().runTask(plugin, () ->
-                        outputList(getAnimalsPerPage(meta.getOwnedList(), entityType, page), player));
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                            List<SavedAnimal> filteredList = getFilteredList(meta.getOwnedList(), entityType);
+                            int totalPages = 0;
+                            if(!filteredList.isEmpty()) totalPages = (int) Math.ceil((double) filteredList.size() / 5); // Calculate total pages based on 5 items per page
+                            outputList(getAnimalsPerPage(filteredList, page, totalPages), player, page, totalPages);
+                        });
             } else {
-                player.sendMessage(MessageUtil.failedMessage(config.PREFIX, "That player doesn't exist" +
-                        " or has no critters."));
+                player.sendMessage(config.LIST_DOES_NOT_EXIST_OR_OWN);
             }
         }));
     }
 
-    /**
-     * Retrieves a sublist of animals for the specified page.
-     * Each page contains a maximum of 5 animals.
-     *
-     * @param animalList The list of all animals.
-     * @param page       The page number to retrieve.
-     * @return A sublist of animals for the specified page.
-     */
-    private List<SavedAnimal> getAnimalsPerPage(List<SavedAnimal> animalList, String entityType, int page) {
-
+    private List<SavedAnimal> getFilteredList(List<SavedAnimal> animalList, String entityType) {
         List<SavedAnimal> filteredList = new ArrayList<>();
 
         if (entityType.equals("all")) {
@@ -149,9 +147,22 @@ public class ListSubCommand implements SubCommandHandler {
             }
         }
 
-        if(filteredList.isEmpty()) return new ArrayList<>();
+        return filteredList;
 
-        int totalPages = (int) Math.ceil((double) filteredList.size() / 5); // Calculate total pages based on 5 items per page
+    }
+
+    /**
+     * Retrieves a sublist of animals for the specified page.
+     * Each page contains a maximum of 5 animals.
+     *
+     * @param filteredList The list of filtered animals.
+     * @param page         The page number to retrieve.
+     * @return A sublist of animals for the specified page.
+     */
+    private List<SavedAnimal> getAnimalsPerPage(List<SavedAnimal> filteredList, int page, int totalPages) {
+
+        if(filteredList.isEmpty()) return filteredList;
+
         if(page < 1) page = 1; // Ensure page is at least 1
         if (page > totalPages) page = totalPages; // Ensure page does not exceed total pages
 
@@ -166,9 +177,9 @@ public class ListSubCommand implements SubCommandHandler {
      * @param animalList The list of animals to output.
      * @param player     The player who executed the command.
      */
-    private void outputList(List<SavedAnimal> animalList, Player player) {
+    private void outputList(List<SavedAnimal> animalList, Player player, int page, int totalPages) {
         if (animalList.isEmpty()) {
-            player.sendMessage(MessageUtil.failedMessage(config.PREFIX, "No critters found for the specified criteria."));
+            player.sendMessage(config.LIST_NO_MATCH);
             return;
         }
         Component message = Component.text("----==== ", NamedTextColor.GRAY)
@@ -186,11 +197,16 @@ public class ListSubCommand implements SubCommandHandler {
                     .append(Component.text(Uuid + "... ", NamedTextColor.GRAY))
                     .append(Component.text(name, NamedTextColor.GREEN)).appendNewline()
                     .append(Component.text("     Type: " + type, NamedTextColor.BLUE))
-                    .append(Component.text(" Color: " + MessageUtil.capitalizeFirstLetter(color),
+                    .append(Component.text(" Color: " + MessageUtils.capitalizeFirstLetter(color),
                             NamedTextColor.YELLOW)).appendNewline()
                     .append(Component.text("     "))
-                    .append(MessageUtil.locationBuilder(location, NamedTextColor.RED));
+                    .append(MessageUtils.locationBuilder(location, NamedTextColor.RED));
         }
+        if(page > totalPages) page = totalPages;
+        message = message.appendNewline()
+                .append(Component.text("----==== ", NamedTextColor.GRAY))
+                .append(Component.text("Page " + page + "/" + totalPages, NamedTextColor.GOLD))
+                .append(Component.text(" ====----", NamedTextColor.GRAY));
         player.sendMessage(message);
     }
 
@@ -205,7 +221,11 @@ public class ListSubCommand implements SubCommandHandler {
     }
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
-        return List.of();
+        return switch (args.length) {
+            case 0 -> entityTypes;
+            case 1 -> null;
+            default -> List.of();
+        };
     }
 
     @Override
@@ -219,8 +239,9 @@ public class ListSubCommand implements SubCommandHandler {
     }
 
     @Override
-    public String getUsage() {
-        return "Usage: /critter list [entityType] [playerName] [pageNumber]";
+    public Component getUsage() {
+        return MessageUtils.miniMessageDeserialize(config.PREFIX +
+                " <red>Usage: /critter list [entityType] [playerName] [pageNumber]</red>");
     }
 
     @Override

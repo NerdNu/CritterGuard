@@ -13,3 +13,25 @@ commands:
     aliases: [cg]
     permission: critterguard.use
     permission-message: You do not have permission to use this command.
+
+permissions:
+  critterguard.access:
+    default: notop
+  critterguard.list:
+    default: notop
+  critterguard.gps:
+    default: notop
+  critterguard.tame:
+    default: op
+  critterguard.untame:
+    default: notop
+  critterguard.untame.own:
+    default: notop
+  critterguard.untame.others:
+    default: op
+  critterguard.tp:
+    default: op
+  critterguard.tphere:
+    default: op
+  critterguard.reload:
+    default: op

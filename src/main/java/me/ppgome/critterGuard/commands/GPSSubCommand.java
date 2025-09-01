@@ -2,7 +2,9 @@ package me.ppgome.critterGuard.commands;
 
 import io.papermc.paper.entity.LookAnchor;
 import me.ppgome.critterGuard.*;
-import me.ppgome.critterGuard.database.SavedAnimal;
+import me.ppgome.critterGuard.utility.MessageUtils;
+import me.ppgome.critterGuard.utility.PlaceholderParser;
+import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
@@ -30,7 +32,7 @@ public class GPSSubCommand implements SubCommandHandler {
 
         // Validate player metadata
         if(playerMeta == null) {
-            player.sendMessage(MessageUtil.failedMessage(config.PREFIX, "Player metadata not found."));
+            player.sendMessage(config.GPS_NO_PLAYERMETA);
             return;
         }
 
@@ -40,11 +42,10 @@ public class GPSSubCommand implements SubCommandHandler {
         // If match found, notify the player
         if(matchedEntity != null) {
             Location location = matchedEntity.getLocation();
-            player.sendMessage(MessageUtil.locationBuilder(location, NamedTextColor.GREEN));
+            player.sendMessage(MessageUtils.locationBuilder(location, NamedTextColor.GREEN));
             player.lookAt(matchedEntity, LookAnchor.EYES, LookAnchor.FEET);
         } else {
-            player.sendMessage(MessageUtil.failedMessage(config.PREFIX, "No critter found matching '" +
-                    critterIdentifier + "'."));
+            player.sendMessage(PlaceholderParser.of(config.GPS_NO_MATCH).identifier(critterIdentifier).parse());
         }
     }
 
@@ -64,8 +65,9 @@ public class GPSSubCommand implements SubCommandHandler {
     }
 
     @Override
-    public String getUsage() {
-        return "Usage: /critter gps <critterName OR uuid OR number>";
+    public Component getUsage() {
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " <red>Usage: /critter gps <critterName OR uuid OR number>\n" +
+                "Note: Partial matches for names and UUIDs are supported.</red>");
     }
 
     @Override

@@ -2,7 +2,9 @@ package me.ppgome.critterGuard.commands;
 
 import me.ppgome.critterGuard.CGConfig;
 import me.ppgome.critterGuard.CritterGuard;
-import me.ppgome.critterGuard.MessageUtil;
+import me.ppgome.critterGuard.utility.MessageUtils;
+import me.ppgome.critterGuard.commands.tpcommands.TPHereSubCommand;
+import me.ppgome.critterGuard.commands.tpcommands.TPSubCommand;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -27,6 +29,9 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
         registerSubCommand(new GPSSubCommand(plugin));
         registerSubCommand(new TPSubCommand(plugin));
         registerSubCommand(new TPHereSubCommand(plugin));
+        registerSubCommand(new TameSubCommand(plugin));
+        registerSubCommand(new UntameSubCommand(plugin));
+        registerSubCommand(new ReloadSubCommand(plugin));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -39,7 +44,8 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(@NotNull CommandSender sender, @NotNull Command command, @NotNull String s, @NotNull String @NotNull [] args) {
         if (args.length == 0) {
-            sender.sendMessage(MessageUtil.failedMessage(config.PREFIX, "Usage: /critter <subcommand> [args]"));
+            sender.sendMessage(MessageUtils.miniMessageDeserialize(config.PREFIX
+                    + " <red>Usage: /critter <subcommand> [args]</red>"));
             return true;
         }
 
@@ -47,18 +53,18 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
         SubCommandHandler subCommandHandler = subCommands.get(subCommandName);
 
         if (subCommandHandler == null) {
-            sender.sendMessage("Unknown subcommand: " + subCommandName);
+            sender.sendMessage(MessageUtils.miniMessageDeserialize(config.PREFIX + "<red>Unknown subcommand: " +
+                subCommandName + "</red>"));
             return true;
         }
 
         if(!sender.hasPermission(subCommandHandler.getPermission())) {
-            sender.sendMessage(MessageUtil.failedMessage(config.PREFIX, "You do not have permission" +
-                    " to use this command."));
+            sender.sendMessage(config.PERMISSION_COMMAND);
             return true;
         }
 
         if (args.length < subCommandHandler.getMinArgs() + 1) {
-            sender.sendMessage(MessageUtil.failedMessage(config.PREFIX, subCommandHandler.getUsage()));
+            sender.sendMessage(subCommandHandler.getUsage());
             return true;
         }
         subCommandHandler.execute(sender, Arrays.copyOfRange(args, 1, args.length));

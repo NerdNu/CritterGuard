@@ -13,7 +13,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -215,70 +214,6 @@ public final class CritterGuard extends JavaPlugin {
             critterCache.addPlayerMeta(playerMeta);
         }
         return playerMeta;
-    }
-
-    /**
-     * Adds a new SavedMount to the in-memory cache and persists it to the database.
-     * @param savedAnimal the SavedAnimal to register
-     */
-    public void registerNewSavedAnimal(@NotNull SavedAnimal savedAnimal) {
-        UUID playerUuid = UUID.fromString(savedAnimal.getEntityOwnerUuid());
-        registerNewPlayer(playerUuid);
-        PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
-        savedAnimal.setIndex(playerMeta.getOwnedList().size() + 1);
-        playerMeta.addOwnedMount(savedAnimal);
-        if(savedAnimal instanceof SavedMount savedMount) {
-            critterCache.addSavedMount(savedMount);
-            savedMountTable.save(savedMount);
-        } else {
-            savedPetTable.save((SavedPet) savedAnimal);
-        }
-    }
-
-    /**
-     * Removes a SavedMount from the in-memory cache and the database.
-     * @param savedAnimal the SavedAnimal to remove from the cache
-     */
-    public void unregisterSavedMount(SavedAnimal savedAnimal) {
-        critterCache.getPlayerMeta(UUID.fromString(savedAnimal.getEntityOwnerUuid())).removeOwnedMount(savedAnimal);
-        if(savedAnimal instanceof SavedMount savedMount) {
-            critterCache.removeSavedMount(savedMount);
-            savedMountTable.delete(savedMount);
-            for(MountAccess mountAccess : savedMount.getAccessList().values()) {
-                mountAccessTable.delete(mountAccess);
-            }
-        } else {
-            savedPetTable.delete((SavedPet) savedAnimal);
-        }
-    }
-
-    /**
-     * Processes the death of an animal by removing its saved data from the cache and database.
-     * This method checks if the entity is a saved mount or pet and removes it accordingly.
-     * @param entityUuid the UUID of the entity that died
-     */
-    public void processAnimalDeath(UUID entityUuid) {
-        SavedMount savedMount = critterCache.getSavedMount(entityUuid);
-        if(savedMount != null) {
-            unregisterSavedMount(savedMount);
-            logInfo("Removed saved mount " + savedMount.getEntityName() + " due to death.");
-        } else {
-            savedPetTable.getSavedPet(entityUuid.toString()).thenAccept(savedPet -> {
-                if(savedPet != null) {
-                    Bukkit.getScheduler().runTask(this, () -> {
-                        PlayerMeta playerMeta = critterCache.getPlayerMeta(UUID.fromString(savedPet.getEntityOwnerUuid()));
-                        if(playerMeta != null) {
-                            SavedAnimal realAnimal = playerMeta.getOwnedMountByUuid(entityUuid);
-                            if(realAnimal != null) {
-                                playerMeta.removeOwnedMount(realAnimal);
-                            }
-                        }
-                        savedPetTable.delete(savedPet);
-                        logInfo("Removed saved pet " + savedPet.getEntityName() + " due to death.");
-                    });
-                }
-            });
-        }
     }
 
     /**

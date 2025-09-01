@@ -1,5 +1,6 @@
 package me.ppgome.critterGuard.commands;
 
+import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 
 import java.util.List;
@@ -42,7 +43,7 @@ public interface SubCommandHandler {
      * Get command usage
      * @return Usage string
      */
-    String getUsage();
+    Component getUsage();
 
     /**
      * Get required permission
