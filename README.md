@@ -4,6 +4,9 @@ CritterGuard is a plugin for protecting your pets from death and theft.
 
 It introduces its own taming system so mobs not typically able to be tamed, like camels and happy ghasts, can be locked to players.
 
+> [!TIP]
+> `/critter` can also be used as just `/cg`.
+
 ## Taming
 
 ### Horses, Mules, and Donkeys
@@ -73,11 +76,13 @@ This is simply the name of the player whose critters you want a list of.
 #### page
 The page you want to view, in the event you have enough critters to populate multiple pages. Must be a number above 0.
 
+
 ### `/critter gps <identifier>`
 Gives you the location of, and points your player at, the critter specified.
 
 #### idenfifier
 [See the section dedicated to this](#The-"identifier"-parameter).
+
 
 ### `/critter untame`
 After running this command, click on a critter you own to untame it.
@@ -91,6 +96,7 @@ After running this command, click on an untamed critter to tame it to a player.
 #### player
 This is the name of the player who you're taming the critter to.
 
+
 ### `/critter tp <player> <identifier>`
 Teleports you to someone else's critter.
 
@@ -100,6 +106,7 @@ This is the name of the player whose pet is being teleported to.
 #### Identifier
 [See the section dedicated to this](#The-"identifier"-parameter).
 
+
 ### `/critter tphere <player> <identifier>`
 
 #### player
@@ -108,10 +115,15 @@ This is the name of the player whose pet is being teleported to you.
 #### Identifier
 [See the section dedicated to this](#The-"identifier"-parameter).
 
+
 ### `/critter reload`
 Reloads the plugin's configuration file.
 
 ## All Commands & Permissions
+
+> [!important]
+> If giving access to either permission for  `/critter tame`, you must also grant `critterguard.tame`. This grants auto-complete abilities to the command.
+
 | Command                                                | Description                                                                                                 | Permission                                              |
 |--------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
 | /critter access <add/remove> <full/passenger> <player> | Grant or remove a player's access to a mount.                                                               | critterguard.access                                     |
