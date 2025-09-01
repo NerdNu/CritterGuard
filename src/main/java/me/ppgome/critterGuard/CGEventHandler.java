@@ -4,7 +4,6 @@ import io.papermc.paper.event.player.PlayerNameEntityEvent;
 import me.ppgome.critterGuard.database.*;
 import me.ppgome.critterGuard.utility.CritterAccessHandler;
 import me.ppgome.critterGuard.utility.CritterTamingHandler;
-import me.ppgome.critterGuard.utility.MessageUtils;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -55,7 +54,7 @@ public class CGEventHandler implements Listener {
         UUID playerUuid = event.getPlayer().getUniqueId();
         PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
         if(playerMeta == null) {
-            critterCache.addPlayerMeta(new PlayerMeta(playerUuid));
+            critterCache.addPlayerMeta(new PlayerMeta(playerUuid, plugin));
         }
     }
 
@@ -69,7 +68,19 @@ public class CGEventHandler implements Listener {
     @EventHandler
     public void onCritterDeath(EntityDeathEvent event) {
         Entity entity = event.getEntity();
-        if(!(entity instanceof Tameable || entity instanceof HappyGhast)) return; // Only handle tameable entities
+        if(tamingHandler.isMountableEntity(entity)) {
+            SavedMount savedMount = critterCache.getSavedMount(entity.getUniqueId());
+            if(savedMount != null && entity.getPassengers().getFirst() instanceof Player player) {
+                UUID playerUuid = player.getUniqueId();
+                if(savedMount.hasFullAccess(playerUuid) && !savedMount.isOwner(playerUuid)) {
+                    notifyPlayer(player, savedMount, config.NOTIFICATION_DIED);
+                    plugin.logInfo(player.getName() + " was riding " +
+                            savedMount.getEntityOwnerUuid() + "'s mount when it died: " +
+                            savedMount.getEntityUuid());
+                }
+            }
+        }
+        if(!tamingHandler.canHandleTaming(entity)) return; // Only handle tameable entities
         tamingHandler.processAnimalDeath(entity.getUniqueId());
     }
 
@@ -94,13 +105,12 @@ public class CGEventHandler implements Listener {
                 interactTame(playerUuid, player, entityUuid, entity);
                 event.setCancelled(true);
             } else if(critterCache.isAwaitingUntame(playerUuid)) {
-                interactUntame(playerUuid, player, savedMount, entityUuid, entity);
+                tamingHandler.untame(playerUuid, player, savedMount, entityUuid, entity);
                 event.setCancelled(true);
             }
         } else {
-            if(critterCache.isAwaitingUntame(playerUuid)) {
-                interactUntame(playerUuid, player, savedMount, entityUuid, entity);
-            }
+            // Player has mount access. Allow passthrough
+            if(savedMount.hasAccess(playerUuid)) return;
             // Saved mount, player is not the owner
             else if (!savedMount.hasAccess(playerUuid)) {
                 if(config.CAN_BREED_LOCKED_ANIMALS && entity instanceof Animals animal && animal.isAdult()
@@ -110,6 +120,10 @@ public class CGEventHandler implements Listener {
                 // Player does not have access, prevent interaction
                 event.setCancelled(true);
                 player.sendMessage(config.PERMISSION_INTERACT);
+            }
+            // Player clicking is trying to untame the entity
+            if(critterCache.isAwaitingUntame(playerUuid)) {
+                tamingHandler.untame(playerUuid, player, savedMount, entityUuid, entity);
             }
             event.setCancelled(true);
         }
@@ -138,36 +152,6 @@ public class CGEventHandler implements Listener {
                         .parse());
             }
         }));
-    }
-
-    private void interactUntame(UUID playerUuid, Player player, SavedMount savedMount, UUID entityUuid, Entity entity) {
-        boolean canUntameOwn = player.hasPermission("critterguard.untame.own");
-        boolean canUntameOthers = player.hasPermission("critterguard.untame.others");
-        // is it a mount?
-        if(savedMount != null) {
-            if((canUntameOwn && savedMount.isOwner(playerUuid)) || canUntameOthers) {
-                if(entity instanceof Tameable tameable) tameable.setTamed(false);
-                tamingHandler.unregisterSavedMount(savedMount);
-                player.sendMessage(config.UNTAME);
-
-            } else player.sendMessage(config.TAMED_NOT_YOURS);
-        }
-        // Is it a pet?
-        else {
-            savedPetTable.getSavedPet(entityUuid.toString()).thenAccept(savedPet -> Bukkit.getScheduler().runTask(plugin, () -> {
-                if(savedPet != null) {
-                    if((canUntameOwn && savedPet.isOwner(playerUuid)) || canUntameOthers) {
-                        if(entity instanceof Tameable tameable) tameable.setTamed(false);
-                        tamingHandler.unregisterSavedMount(savedPet);
-                        player.sendMessage(config.UNTAME);
-
-                    } else player.sendMessage(config.TAMED_NOT_YOURS);
-                } else {
-                    player.sendMessage(config.NOT_TAMED);
-                }
-            }));
-        }
-        critterCache.removeAwaitingUntame(playerUuid);
     }
 
     @EventHandler
@@ -216,12 +200,20 @@ public class CGEventHandler implements Listener {
         // Handle a saved mount
         SavedMount savedMount = critterCache.getSavedMount(mountUuid);
         if(savedMount != null) {
+            boolean hasAccess = savedMount.hasAccess(passenger.getUniqueId());
+            boolean isFullAccess = savedMount.hasFullAccess(passenger.getUniqueId());
             if(!mount.getPassengers().isEmpty()) {
                 // Player has passenger access or is the owner, allow mounting
-                if(savedMount.hasAccess(passenger.getUniqueId()) || savedMount.isOwner(passenger.getUniqueId())) return;
+                if(hasAccess || savedMount.isOwner(passenger.getUniqueId())) return;
                 // Player has full access, allow mounting
-            } else if(savedMount.hasFullAccess(passenger.getUniqueId()) || savedMount.isOwner(passenger.getUniqueId())) return;
-
+            } else if(isFullAccess || savedMount.isOwner(passenger.getUniqueId())) {
+                if(isFullAccess) {
+                    notifyPlayer(player, savedMount, config.NOTIFICATION_MOUNTED);
+                    plugin.logInfo(player.getName() + " started riding " +
+                            savedMount.getEntityOwnerUuid() + "'s mount: " + savedMount.getEntityUuid());
+                }
+                return;
+            }
             // Player does not have access, prevent mounting
             event.setCancelled(true);
             passenger.sendMessage(config.PERMISSION_MOUNT);
@@ -232,6 +224,23 @@ public class CGEventHandler implements Listener {
             tamingHandler.handleTaming(player, mount);
         }
 
+    }
+
+    public void notifyPlayer(Player player, SavedMount savedMount, String notificationType) {
+        Player owner = Bukkit.getPlayer(savedMount.getEntityOwnerUuid());
+        // Send message to owner
+        if(owner != null && owner.isOnline() &&
+                critterCache.getPlayerMeta(owner.getUniqueId()).showNotifications()) {
+            String mountString;
+            if(savedMount.getEntityName() == null) mountString = String.valueOf(savedMount.getEntityUuid());
+            else mountString = savedMount.getEntityName();
+
+            owner.sendMessage(PlaceholderParser
+                    .of(notificationType)
+                    .player(player.getName())
+                    .mount(mountString)
+                    .parse());
+        }
     }
 
     @EventHandler
@@ -290,6 +299,28 @@ public class CGEventHandler implements Listener {
                 }
             } else {
                 event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onCritterDismount(EntityDismountEvent event) {
+        Entity entity = event.getDismounted();
+        if (tamingHandler.isMountableEntity(entity)) {
+            // TODO: REMOVE THIS
+            System.out.println("Notify 1");
+            SavedMount savedMount = critterCache.getSavedMount(entity.getUniqueId());
+            if (savedMount != null && event.getEntity() instanceof Player player) {
+                // TODO: REMOVE THIS
+                System.out.println("Notify 2");
+                UUID playerUUID = player.getUniqueId();
+                if (savedMount.hasFullAccess(playerUUID) && !savedMount.isOwner(playerUUID)) {
+                    // TODO: REMOVE THIS
+                    System.out.println("Notify 3");
+                    notifyPlayer(player, savedMount, config.NOTIFICATION_DISMOUNTED);
+                    plugin.logInfo(player.getName() + " stopped riding " +
+                            savedMount.getEntityOwnerUuid() + "'s mount: " + savedMount.getEntityUuid());
+                }
             }
         }
     }

@@ -30,6 +30,11 @@ public class PlaceholderParser {
         return this;
     }
 
+    public PlaceholderParser mount(String mount) {
+        placeholders.add(Placeholder.component("mount", Component.text(mount)));
+        return this;
+    }
+
     public PlaceholderParser click() {
         placeholders.add(Placeholder.component("button", click));
         return this;

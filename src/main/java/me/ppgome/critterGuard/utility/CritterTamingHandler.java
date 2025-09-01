@@ -132,7 +132,7 @@ public class CritterTamingHandler {
      * @param savedAnimal the SavedAnimal to register
      */
     public void registerNewSavedAnimal(@NotNull SavedAnimal savedAnimal) {
-        UUID playerUuid = UUID.fromString(savedAnimal.getEntityOwnerUuid());
+        UUID playerUuid = savedAnimal.getEntityOwnerUuid();
         plugin.registerNewPlayer(playerUuid);
         PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
         savedAnimal.setIndex(playerMeta.getOwnedList().size() + 1);
@@ -150,7 +150,7 @@ public class CritterTamingHandler {
      * @param savedAnimal the SavedAnimal to remove from the cache
      */
     public void unregisterSavedMount(SavedAnimal savedAnimal) {
-        critterCache.getPlayerMeta(UUID.fromString(savedAnimal.getEntityOwnerUuid())).removeOwnedMount(savedAnimal);
+        critterCache.getPlayerMeta(savedAnimal.getEntityOwnerUuid()).removeOwnedMount(savedAnimal);
         if(savedAnimal instanceof SavedMount savedMount) {
             critterCache.removeSavedMount(savedMount);
             savedMountTable.delete(savedMount);
@@ -176,7 +176,7 @@ public class CritterTamingHandler {
             savedPetTable.getSavedPet(entityUuid.toString()).thenAccept(savedPet -> {
                 if(savedPet != null) {
                     Bukkit.getScheduler().runTask(plugin, () -> {
-                        PlayerMeta playerMeta = critterCache.getPlayerMeta(UUID.fromString(savedPet.getEntityOwnerUuid()));
+                        PlayerMeta playerMeta = critterCache.getPlayerMeta(savedPet.getEntityOwnerUuid());
                         if(playerMeta != null) {
                             SavedAnimal realAnimal = playerMeta.getOwnedMountByUuid(entityUuid);
                             if(realAnimal != null) {
@@ -189,6 +189,36 @@ public class CritterTamingHandler {
                 }
             });
         }
+    }
+
+    public void untame(UUID playerUuid, Player player, SavedMount savedMount, UUID entityUuid, Entity entity) {
+        boolean canUntameOwn = player.hasPermission("critterguard.untame.own");
+        boolean canUntameOthers = player.hasPermission("critterguard.untame.others");
+        // is it a mount?
+        if(savedMount != null) {
+            if((canUntameOwn && savedMount.isOwner(playerUuid)) || canUntameOthers) {
+                if(entity instanceof Tameable tameable) tameable.setTamed(false);
+                unregisterSavedMount(savedMount);
+                player.sendMessage(config.UNTAME);
+
+            } else player.sendMessage(config.TAMED_NOT_YOURS);
+        }
+        // Is it a pet?
+        else {
+            savedPetTable.getSavedPet(entityUuid.toString()).thenAccept(savedPet -> Bukkit.getScheduler().runTask(plugin, () -> {
+                if(savedPet != null) {
+                    if((canUntameOwn && savedPet.isOwner(playerUuid)) || canUntameOthers) {
+                        if(entity instanceof Tameable tameable) tameable.setTamed(false);
+                        unregisterSavedMount(savedPet);
+                        player.sendMessage(config.UNTAME);
+
+                    } else player.sendMessage(config.TAMED_NOT_YOURS);
+                } else {
+                    player.sendMessage(config.NOT_TAMED);
+                }
+            }));
+        }
+        critterCache.removeAwaitingUntame(playerUuid);
     }
 
 }

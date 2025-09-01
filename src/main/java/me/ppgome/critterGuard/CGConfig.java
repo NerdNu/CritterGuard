@@ -15,7 +15,10 @@ public class CGConfig {
     public String PREFIX;
 
     // Toggles
-    public boolean CAN_BREED_LOCKED_ANIMALS = false;
+    public boolean CAN_BREED_LOCKED_ANIMALS;
+    public boolean LOG_MOUNT_NOTIFICATIONS;
+    public boolean LOG_DISMOUNT_NOTIFICATIONS;
+    public boolean LOG_DEATH_NOTIFICATIONS;
 
     // Messages
     /*
@@ -40,6 +43,13 @@ public class CGConfig {
     public Component GPS_NO_PLAYERMETA;
     public Component LIST_DOES_NOT_EXIST_OR_OWN;
     public Component LIST_NO_MATCH;
+    public String NOTIFICATION_MOUNTED;
+    public String NOTIFICATION_DISMOUNTED;
+    public String NOTIFICATION_DIED;
+    public Component NOTIFICATION_TOGGLE_ON;
+    public Component NOTIFICATION_TOGGLE_OFF;
+    public Component NOTIFICATION_ALREADY_ON;
+    public Component NOTIFICATION_ALREADY_OFF;
     public Component PERMISSION_COMMAND;
     public Component PERMISSION_INTERACT;
     public Component PERMISSION_MOUNT;
@@ -83,7 +93,11 @@ public class CGConfig {
         PREFIX = config.getString("pluginPrefix", "<gold>[</gold><green>CritterGuard</green><gold>]</gold>");
 
         // TOGGLES
-        CAN_BREED_LOCKED_ANIMALS = plugin.getConfig().getBoolean("toggles.canBreedLockedAnimals", true);
+        String togglesPath = "toggles.";
+        CAN_BREED_LOCKED_ANIMALS = plugin.getConfig().getBoolean(togglesPath + "canBreedLockedAnimals", true);
+        LOG_MOUNT_NOTIFICATIONS = plugin.getConfig().getBoolean(togglesPath + "logMountNotifications", true);
+        LOG_DISMOUNT_NOTIFICATIONS = plugin.getConfig().getBoolean(togglesPath + "logDismountNotifications", true);
+        LOG_DEATH_NOTIFICATIONS = plugin.getConfig().getBoolean(togglesPath + "logDeathNotifications", true);
 
         // MESSAGES
         // --ACCESS
@@ -126,6 +140,23 @@ public class CGConfig {
                 + " " + config.getString(listPath + "doesntExistOrOwn", errorMessage));
         LIST_NO_MATCH = mm.deserialize(PREFIX
                 + " " + config.getString(listPath + "noneMatched", errorMessage));
+
+        // --NOTIFICATION
+        String notificationPath = "messages.notification.";
+        NOTIFICATION_MOUNTED = PREFIX
+                + " " + config.getString(notificationPath + "mounted", errorMessage);
+        NOTIFICATION_DISMOUNTED = PREFIX
+                + " " + config.getString(notificationPath + "dismounted", errorMessage);
+        NOTIFICATION_DIED = PREFIX
+                + " " + config.getString(notificationPath + "died", errorMessage);
+        NOTIFICATION_TOGGLE_ON = mm.deserialize(PREFIX
+                + " " + config.getString(notificationPath + "toggleOn", errorMessage));
+        NOTIFICATION_TOGGLE_OFF = mm.deserialize(PREFIX
+                + " " + config.getString(notificationPath + "toggleOff", errorMessage));
+        NOTIFICATION_ALREADY_ON = mm.deserialize(PREFIX
+                + " " + config.getString(notificationPath + "alreadyOn", errorMessage));
+        NOTIFICATION_ALREADY_OFF = mm.deserialize(PREFIX
+                + " " + config.getString(notificationPath + "alreadyOff", errorMessage));
 
         // --PERMISSION
         String permissionPath = "messages.permission.";

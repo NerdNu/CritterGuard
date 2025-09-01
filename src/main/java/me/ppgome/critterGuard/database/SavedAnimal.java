@@ -40,8 +40,8 @@ public class SavedAnimal {
      * This is used to uniquely identify the mount in the database.
      * @return the UUID of the mount
      */
-    public String getEntityUuid() {
-        return entityUuid;
+    public UUID getEntityUuid() {
+        return UUID.fromString(entityUuid);
     }
 
     /**
@@ -76,8 +76,8 @@ public class SavedAnimal {
      * This is used to identify who owns the mount.
      * @return the UUID of the mount owner
      */
-    public String getEntityOwnerUuid() {
-        return entityOwnerUuid;
+    public UUID getEntityOwnerUuid() {
+        return UUID.fromString(entityOwnerUuid);
     }
 
     /**

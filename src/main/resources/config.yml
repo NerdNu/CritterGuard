@@ -2,6 +2,9 @@ pluginPrefix: "<gold>[</gold><green>CritterGuard</green><gold>]</gold>"
 
 toggles:
   canBreedLockedAnimals: true
+  logMountNotifications: true
+  logDismountNotifications: true
+  logDeathNotifications: true
 
 messages:
   access:
@@ -65,6 +68,36 @@ messages:
 
     # When a player uses /critter list but no critters match the criteria specified by the parameters
     noneMatched: "<red>No critters found for the specified criteria.</red>"
+
+  notification:
+    # When a player mounts the entity of another player, this message is sent to them if they're online,
+    # otherwise it logs it if enabled.
+    # PLACEHOLDER: <player> is replaced with the player who's mounting's name
+    # PLACEHOLDER: <mount> is replaced with the mount's name, if named, or UUID
+    mounted: "<color:#FFD966><player> has taken control of your mount: <mount>.</color>"
+
+    # When a player mounts the entity of another player, this message is sent to them if they're online,
+    # otherwise it logs it if enabled.
+    # PLACEHOLDER: <player> is replaced with the player who's mounting's name
+    # PLACEHOLDER: <mount> is replaced with the mount's name, if named, or UUID
+    dismounted: "<color:#FFD966><player> has dismounted your mount: <mount>.</color>"
+
+    # When a mount dies while the person riding it isn't the owner, this message is sent to the owner.
+    # PLACEHOLDER: <player> is replaced with the player who's mounting's name
+    # PLACEHOLDER: <mount> is replaced with the mount's name, if named, or UUID
+    died: "<red>☠ <player> was on your your mount when it died: <mount> ☠</red>"
+
+    # Sent to a player when they enable mount notifications.
+    toggleOn: "<green>You have enabled mount notifications.</green>"
+
+    # Sent to a player when they disable mount notifications.
+    toggleOff: "<green>You have <red>disabled</red> mount notifications.</green>"
+
+    # Sent to a player when they try to enable notifications but already have them enabled.
+    alreadyOn: "<red>You already have notifications enabled.</red>"
+
+    # Sent to a player when they try to disable notifications but already have them disable.
+    alreadyOff: "<red>You already have notifications disabled.</red>"
 
   permission:
     # When a player tries to use a command they don't have permission for

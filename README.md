@@ -82,6 +82,14 @@ Gives you the location of, and points your player at, the critter specified.
 ### `/critter untame`
 After running this command, click on a critter you own to untame it.
 
+### `/critter notifications [on/off]`
+This command will toggle whether you get mount notifications or not.
+
+Mount notifications are sent to you when someone with full access to one of your mounts gets on it, dismounts it, or dies while riding it.
+
+#### on/off
+This is an optional parameter in case you want to toggle a specific state.
+
 ## Staff Commands
 These are commands that should, typically, only be given to staff or higher.
 
@@ -117,6 +125,7 @@ Reloads the plugin's configuration file.
 | /critter access <add/remove> <full/passenger> <player> | Grant or remove a player's access to a mount.                                                               | critterguard.access                                     |
 | /critter list [entityType] [player] [page]             | Get a list of critters based on the specified criteria.                                                     | critterguard.list                                       |
 | /critter gps <identifier>                              | Get the coordinates of, and point your camera to, a critter you own that matches the specified identifier.  | critterguard.gps                                        |
+| /critter notifications [on/off]                        | Enable/disable mount notifications.                                                                         | critterguard.notifications                              |
 | /critter untame                                        | Untames a critter.                                                                                          | critterguard.untame.own <br> critterguard.untame.others |
 | /critter tame                                          | Tames a critter to the specified player.                                                                    | critterguard.tame                                       |
 | /critter tp <player> <identifier>                      | Teleports you to the critter that belongs to the player specified and who matches the specified identifier. | critterguard.tp                                         |

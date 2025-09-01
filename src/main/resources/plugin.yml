@@ -21,6 +21,8 @@ permissions:
     default: notop
   critterguard.gps:
     default: notop
+  critterguard.notifications:
+    default: notop
   critterguard.tame:
     default: op
   critterguard.untame:

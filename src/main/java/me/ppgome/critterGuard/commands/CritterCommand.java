@@ -32,6 +32,7 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
         registerSubCommand(new TameSubCommand(plugin));
         registerSubCommand(new UntameSubCommand(plugin));
         registerSubCommand(new ReloadSubCommand(plugin));
+        registerSubCommand(new ToggleNotifsSubCommand(plugin));
     }
 
     //------------------------------------------------------------------------------------------------------------------

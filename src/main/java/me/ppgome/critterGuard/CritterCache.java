@@ -46,7 +46,7 @@ public class CritterCache {
 
     // -------- Saved Mount Cache
     public void addSavedMount(SavedMount savedMount) {
-        savedMountsCache.put(UUID.fromString(savedMount.getEntityUuid()), savedMount);
+        savedMountsCache.put(savedMount.getEntityUuid(), savedMount);
     }
 
     public SavedMount getSavedMount(UUID mountUuid) {
@@ -54,7 +54,7 @@ public class CritterCache {
     }
 
     public void removeSavedMount(SavedMount savedMount) {
-        savedMountsCache.remove(UUID.fromString(savedMount.getEntityUuid()));
+        savedMountsCache.remove(savedMount.getEntityUuid());
     }
 
     // -------- Player Meta Cache

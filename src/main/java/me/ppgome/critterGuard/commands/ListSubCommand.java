@@ -2,6 +2,7 @@ package me.ppgome.critterGuard.commands;
 
 import me.ppgome.critterGuard.*;
 import me.ppgome.critterGuard.database.SavedAnimal;
+import me.ppgome.critterGuard.utility.CritterTamingHandler;
 import me.ppgome.critterGuard.utility.MessageUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -22,6 +23,7 @@ public class ListSubCommand implements SubCommandHandler {
     private CGConfig config;
     private CritterCache critterCache;
     private List<String> entityTypes;
+    private CritterTamingHandler tamingHandler;
 
     /**
      * Constructor for ListSubCommand.
@@ -32,7 +34,8 @@ public class ListSubCommand implements SubCommandHandler {
     public ListSubCommand(CritterGuard plugin) {
         this.plugin = plugin;
         this.config = plugin.getCGConfig();
-        this. critterCache = plugin.getCritterCache();
+        this.critterCache = plugin.getCritterCache();
+        this.tamingHandler = new CritterTamingHandler(plugin);
         entityTypes = new ArrayList<>(List.of("all", "horse", "mule", "donkey", "camel", "llama",
                 "happy_ghast", "wolf", "cat", "parrot"));
     }
@@ -187,11 +190,15 @@ public class ListSubCommand implements SubCommandHandler {
                 .append(Component.text(" ====----", NamedTextColor.GRAY))
                 .appendNewline();
         for (SavedAnimal animal : animalList) {
-            String Uuid = animal.getEntityUuid().substring(0, 8);
+            if(Bukkit.getEntity(animal.getEntityUuid()) == null) {
+                tamingHandler.unregisterSavedMount(animal);
+                continue;
+            }
+            String Uuid = animal.getEntityUuid().toString().substring(0, 8);
             String name = animal.getEntityName() != null ? animal.getEntityName() : "No name";
             String type = animal.getEntityType();
             String color = animal.getColor() != null ? animal.getColor() : "N/A";
-            Location location = Bukkit.getEntity(UUID.fromString(animal.getEntityUuid())).getLocation();
+            Location location = Bukkit.getEntity(animal.getEntityUuid()).getLocation();
             message = message.appendNewline()
                     .append(Component.text("[" + animal.getIndex() + "] ", NamedTextColor.GOLD))
                     .append(Component.text(Uuid + "... ", NamedTextColor.GRAY))
@@ -222,8 +229,8 @@ public class ListSubCommand implements SubCommandHandler {
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         return switch (args.length) {
-            case 0 -> entityTypes;
-            case 1 -> null;
+            case 1 -> entityTypes;
+            case 2 -> null;
             default -> List.of();
         };
     }

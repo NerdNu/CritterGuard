@@ -17,15 +17,15 @@ public class CommandUtils {
             List<SavedAnimal> ownedList = playerMeta.getOwnedList();
             if (index >= 0 && index < ownedList.size()) {
                 SavedAnimal indexedAnimal = ownedList.get(index);
-                return plugin.getServer().getEntity(java.util.UUID.fromString(indexedAnimal.getEntityUuid()));
+                return plugin.getServer().getEntity(indexedAnimal.getEntityUuid());
             }
         }
         // If not numeric, check for UUID or name match
         for (SavedAnimal savedAnimal : playerMeta.getOwnedList()) {
-            if (savedAnimal.getEntityUuid().toLowerCase().startsWith(critterIdentifier) ||
+            if (savedAnimal.getEntityUuid().toString().toLowerCase().startsWith(critterIdentifier) ||
                     (savedAnimal.getEntityName() != null &&
                             savedAnimal.getEntityName().toLowerCase().startsWith(critterIdentifier))) {
-                return plugin.getServer().getEntity(java.util.UUID.fromString(savedAnimal.getEntityUuid()));
+                return plugin.getServer().getEntity(savedAnimal.getEntityUuid());
             }
         }
         return null;

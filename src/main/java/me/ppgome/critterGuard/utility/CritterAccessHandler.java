@@ -122,7 +122,7 @@ public class CritterAccessHandler {
                     if (playerBeingAdded.isOnline()) {
                         Bukkit.getPlayer(beingAddedUuid).sendMessage(PlaceholderParser
                                 .of(config.GRANTED_FULL_ACCESS)
-                                .player(playerBeingAdded.getName())
+                                .player(player.getName())
                                 .parse());
                     }
                 } else {
@@ -133,7 +133,7 @@ public class CritterAccessHandler {
                     if (playerBeingAdded.isOnline()) {
                         Bukkit.getPlayer(beingAddedUuid).sendMessage(PlaceholderParser
                                 .of(config.GRANTED_PASSENGER_ACCESS)
-                                .player(playerBeingAdded.getName())
+                                .player(player.getName())
                                 .parse());
                     }
                 }

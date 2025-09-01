@@ -168,7 +168,7 @@ public final class CritterGuard extends JavaPlugin {
                 if(savedMounts != null) {
                     for(SavedMount savedMount : savedMounts) {
                         critterCache.addSavedMount(savedMount);
-                        playerMeta = registerNewPlayer(UUID.fromString(savedMount.getEntityOwnerUuid()));
+                        playerMeta = registerNewPlayer(savedMount.getEntityOwnerUuid());
                         savedMount.setIndex(playerMeta.getOwnedList().size() + 1);
                         playerMeta.addOwnedMount(savedMount);
                     }
@@ -188,7 +188,7 @@ public final class CritterGuard extends JavaPlugin {
                 // Initialize the in-memory cache for saved pets
                 if(savedPets != null) {
                     for(SavedPet savedPet : savedPets) {
-                        playerMeta = registerNewPlayer(UUID.fromString(savedPet.getEntityOwnerUuid()));
+                        playerMeta = registerNewPlayer(savedPet.getEntityOwnerUuid());
                         savedPet.setIndex(playerMeta.getOwnedList().size() + 1);
                         playerMeta.addOwnedMount(savedPet);
                     }
@@ -210,7 +210,7 @@ public final class CritterGuard extends JavaPlugin {
     public PlayerMeta registerNewPlayer(UUID playerUuid) {
         PlayerMeta playerMeta = critterCache.getPlayerMeta(playerUuid);
         if(playerMeta == null) {
-            playerMeta = new PlayerMeta(playerUuid);
+            playerMeta = new PlayerMeta(playerUuid, this);
             critterCache.addPlayerMeta(playerMeta);
         }
         return playerMeta;
