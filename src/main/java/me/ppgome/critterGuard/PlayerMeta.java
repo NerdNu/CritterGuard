@@ -2,14 +2,11 @@ package me.ppgome.critterGuard;
 
 import me.ppgome.critterGuard.database.MountAccess;
 import me.ppgome.critterGuard.database.SavedAnimal;
-import me.ppgome.critterGuard.database.SavedMount;
-import me.ppgome.critterGuard.database.SavedPet;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.Set;
@@ -22,19 +19,29 @@ import java.util.UUID;
  */
 public class PlayerMeta {
 
-    // The UUID of the player.
+    /**
+     * The UUID of the player.
+     */
     private UUID uuid;
 
-    // List of animals owned by the player.
+    /**
+     * List of all critters owned by the player.
+     */
     private ArrayList<SavedAnimal> ownedList;
 
-    // List of mounts the player has access to.
+    /**
+     * The list of mounts the player has access to.
+     */
     private Set<MountAccess> accessList;
 
-    private CritterGuard plugin;
-
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
 
+    /**
+     * The NamespacedKey used for interacting with the player's persistent data.
+     */
     private NamespacedKey notificationKey;
 
     /**
@@ -45,7 +52,6 @@ public class PlayerMeta {
         this.uuid = uuid;
         this.ownedList = new ArrayList<>();
         this.accessList = new java.util.HashSet<>();
-        this.plugin = plugin;
         this.config = plugin.getCGConfig();
         notificationKey = new NamespacedKey(plugin, "cg_notif_toggle");
     }
@@ -53,26 +59,37 @@ public class PlayerMeta {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Checks if the player is the owner of the given SavedAnimal.
-     * @param savedAnimal the SavedAnimal to check ownership for.
-     * @return true if the player owns the SavedAnimal, false otherwise.
+     * Adds a critter to the player's list of owned SavedAnimals.
+     *
+     * @param savedAnimal the SavedAnimal instance of the critter being added
      */
-    public boolean isOwnerOf(SavedAnimal savedAnimal) {
-        return this.ownedList.contains(savedAnimal);
-    }
-
-    public void addOwnedMount(SavedAnimal savedAnimal) {
+    public void addOwnedAnimal(SavedAnimal savedAnimal) {
         this.ownedList.add(savedAnimal);
     }
 
-    public void removeOwnedMount(SavedAnimal savedAnimal) {
+    /**
+     * Removes a critter from the player's list of owned SavedAnimals.
+     *
+     * @param savedAnimal the SavedAnimal instance of the critter being removed
+     */
+    public void removeOwnedAnimal(SavedAnimal savedAnimal) {
         this.ownedList.remove(savedAnimal);
     }
 
+    /**
+     * Adds a MountAccess object to the player's access list, representing a player-mount relationship.
+     *
+     * @param access The access being added
+     */
     public void addMountAccess(MountAccess access) {
         this.accessList.add(access);
     }
 
+    /**
+     * Removes a MountAccess object from the player's access list.
+     *
+     * @param access The access being removed
+     */
     public void removeMountAccess(MountAccess access) {
         if(accessList.remove(access)) return;
         for(MountAccess mountAccess : accessList) {
@@ -83,6 +100,11 @@ public class PlayerMeta {
         }
     }
 
+    /**
+     * Fetches the state of the player's notification display option from their persistent data.
+     *
+     * @return True if they're enabled, false if not
+     */
     public boolean showNotifications() {
         Player player = Bukkit.getPlayer(uuid);
         if(player == null) return false;
@@ -94,6 +116,11 @@ public class PlayerMeta {
         return true;
     }
 
+    /**
+     * Toggles the state of the player's notifications.
+     *
+     * @param isEnabling True if the player is enabling notifications, false if disabling
+     */
     public void toggleNotifications(boolean isEnabling) {
         Player player = Bukkit.getPlayer(uuid);
         if(player == null) return;

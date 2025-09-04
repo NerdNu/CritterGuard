@@ -1,145 +1,161 @@
-# CritterGuard
+# 🐺 CritterGuard 🐎
 
-CritterGuard is a plugin for protecting your pets from death and theft.
+**A comprehensive pet protection plugin for Minecraft servers**
 
-It introduces its own taming system so mobs not typically able to be tamed, like camels and happy ghasts, can be locked to players.
+CritterGuard protects your beloved pets from death and theft by introducing an advanced taming system that extends beyond vanilla Minecraft limitations. Now you can tame and protect creatures like camels and happy ghasts!
 
 > [!TIP]
-> `/critter` can also be used as just `/cg`.
+> **Quick Command:** Use `/critter` or the shorter `/cg` for all commands.
 
-## Taming
+---
 
-### Horses, Mules, and Donkeys
-These are tamed through the normal vanilla method of riding it until it accepts your love.
+## 🌟 Features
 
-### Llamas
-Must be tamed by clicking on a llama with a lead.
+### 🔒 Entity Protection
+CritterGuard protects these creatures from theft and harm:
 
-### Camels and Happy Ghasts
-These are tamed simply by riding them once.
+**Mountable Creatures:**
+- Horses, Mules, Donkeys
+- Zombie Horses, Skeleton Horses
+- Llamas, Camels
+- Happy Ghasts
 
-### Dogs, Cats, and Parrots
-These are tamed through the normal vanilla method of smacking them with their tame items.
+**Companion Creatures:**
+- Wolves, Cats, Parrots
 
-## Access
-CritterGuard adds 2 access groups to mounts (horses, mules, donkeys, llamas, camels, and happy ghasts): passenger and full.
+**Protection Rules:**
+- **Companions** (wolves, cats, parrots) can only be killed by their owners
+- **Mounts** can be killed by anything, but only while being ridden
 
-### Passenger
-Can only be applied to mounts with multiple seats (camels and happy ghasts, currently).
+### 👥 Access Control System
+Control who can use your mounts with two permission levels:
 
-This access only allows a player to ride a mount if someone else is already controlling it who is the owner or has full access.
+#### 🎫 Passenger Access
+- **Applies to:** Multi-seat mounts only (camels, happy ghasts)
+- **Allows:** Riding as a passenger when owner/full-access user is driving
+- **Cannot:** Take control or board without driver present
 
-To add or remove someone to or from your mount with passenger access, use `/critter access <add/remove> passenger <player>` and click on the mount you want the access to be added to.
+#### 🎯 Full Access
+- **Applies to:** All mounts
+- **Allows:** Complete control of the mount
+- **Includes:** Access to mount storage (chests on donkeys/llamas)
 
-### Full
-Can be applied to all mounts.
+### 🔔 Notifications
+Stay informed about your mounts! You'll be notified when someone with full access:
+- Mounts your creature
+- Dismounts your creature
+- Lets your mount die while riding
 
-This access allows a player to ride and control your mount. It also grants access to any chests that may be on it (like on donkeys and llamas).
+*Toggle with: `/critter notifications [on/off]`*
 
-If in-game, you will be notified when a player with full access takes control of your mount.
+### 🔄 Smart Seat Swapping
+For multi-seat mounts, when the driver dismounts:
+- Next person with full access automatically becomes driver
+- If no one else has full access, everyone is dismounted
+- Ensures uninterrupted journeys!
 
-To add or remove someone to or from your mount with passenger access, use `/critter access <add/remove> full <player>` and click on the mount you want the access to be added to.
+### 🎭 Disguise Saddles *(LibsDisguises Required)*
+Transform your mount's appearance with special saddles!
 
-## The "identifier" parameter
-This parameter is required in certain commands and you can give it one of three things:
-- The critter's name (if it was named with a nametag)
-- The critter's UUID
-- The critter's index number from `/critter list`
+**Setup:** Add lore to any saddle starting with `Disguise: ` followed by the mob type
+**Example:** `Disguise: WOLF`
 
-NOTE: This accepts partial matches. That means if you have a dog named "Fido", you can just do `/critter gps fi` and it'll work. However, this can also cause issues if you have 2 critters with similar names or UUIDs, as it will match to 2 critters. In this case, it always picks the one with the lowest index number.
+> [!NOTE]  
+> Multi-seat disguised mounts will stack players on top of each other due to technical limitations.
 
-## Useful Commands
+---
 
-### `/critter list [entityType] [player] [page]`
-Provides you with a list of tamed critters depending on the parameters given.
+## 🎯 Taming Guide
 
-NOTE: All parameters are optional but **must** be entered in the same order as above.
+| Creature | Taming Method |
+|----------|---------------|
+| **Horses, Mules, Donkeys** | Ride until they accept you (vanilla method) |
+| **Llamas** | Click with a lead |
+| **Camels, Happy Ghasts** | Simply ride them once |
+| **Wolves, Cats, Parrots** | Use their respective taming items (vanilla method) |
 
-#### entityType
-Allows you to filter by entity type. Can be useful if you have a lot of critters.
+---
 
-Valid types:
-- all
-- camel
-- cat
-- donkey
-- happy_ghast
-- horse
-- llama
-- mule
-- parrot
-- wolf
+## 🎮 Commands
 
-#### player
-This is simply the name of the player whose critters you want a list of.
+### 📋 Player Commands
 
-#### page
-The page you want to view, in the event you have enough critters to populate multiple pages. Must be a number above 0.
+#### `/critter list [entityType] [player] [page]`
+View your tamed creatures with optional filters.
 
+**Parameters:** (all optional, use in order)
+- `entityType`: Filter by type (`all`, `camel`, `cat`, `donkey`, `happy_ghast`, `horse`, `llama`, `mule`, `parrot`, `wolf`)
+- `player`: View another player's creatures
+- `page`: Navigate multiple pages (number > 0)
 
-### `/critter gps <identifier>`
-Gives you the location of, and points your player at, the critter specified.
+#### `/critter gps <identifier>`
+Get coordinates and direction to your creature.
 
-#### idenfifier
-[See the section dedicated to this](#The-"identifier"-parameter).
+#### `/critter access <add/remove> <passenger/full> <player>`
+Manage access permissions for your mounts.
+*After running, click the mount to apply changes.*
 
+#### `/critter untame`
+Remove taming from a creature you own.
+*Click the creature after running the command.*
 
-### `/critter untame`
-After running this command, click on a critter you own to untame it.
+#### `/critter notifications [on/off]`
+Toggle mount notifications on or off.
 
-### `/critter notifications [on/off]`
-This command will toggle whether you get mount notifications or not.
+### 🛠️ Staff Commands
 
-Mount notifications are sent to you when someone with full access to one of your mounts gets on it, dismounts it, or dies while riding it.
+#### `/critter tame <player>`
+Tame any untamed creature to a specific player.
+*Click the creature after running the command.*
 
-#### on/off
-This is an optional parameter in case you want to toggle a specific state.
+#### `/critter tp <player> <identifier>`
+Teleport to another player's creature.
 
-## Staff Commands
-These are commands that should, typically, only be given to staff or higher.
+#### `/critter tphere <player> <identifier>`
+Teleport another player's creature to you.
 
-### `/critter tame <player>`
-After running this command, click on an untamed critter to tame it to a player.
+#### `/critter reload`
+Reload the plugin configuration.
 
-#### player
-This is the name of the player who you're taming the critter to.
+---
 
+## 🔧 Understanding Identifiers
 
-### `/critter tp <player> <identifier>`
-Teleports you to someone else's critter.
+The `<identifier>` parameter accepts:
+1. **Creature's name** (from nametags)
+2. **Creature's UUID**
+3. **Index number** (from `/critter list`)
 
-#### player
-This is the name of the player whose pet is being teleported to.
+**Smart Matching:** Partial matches work! For a dog named "Fido", `/critter gps fi` works fine.
 
-#### Identifier
-[See the section dedicated to this](#The-"identifier"-parameter).
+> [!WARNING]
+> If multiple creatures match your partial input, the one with the lowest index number is selected.
 
+---
 
-### `/critter tphere <player> <identifier>`
+## 📋 Complete Command Reference
 
-#### player
-This is the name of the player whose pet is being teleported to you.
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/critter access <add/remove> <full/passenger> <player>` | Grant or remove mount access | `critterguard.access` |
+| `/critter list [entityType] [player] [page]` | List creatures by criteria | `critterguard.list` |
+| `/critter gps <identifier>` | Locate and point to your creature | `critterguard.gps` |
+| `/critter notifications [on/off]` | Toggle mount notifications | `critterguard.notifications` |
+| `/critter untame` | Untame a creature | `critterguard.untame.own`<br>`critterguard.untame.others` |
+| `/critter tame <player>` | Tame creature to specified player | `critterguard.tame` |
+| `/critter tp <player> <identifier>` | Teleport to another's creature | `critterguard.tp` |
+| `/critter tphere <player> <identifier>` | Teleport creature to you | `critterguard.tphere` |
+| `/critter reload` | Reload configuration | `critterguard.reload` |
 
-#### Identifier
-[See the section dedicated to this](#The-"identifier"-parameter).
+> [!IMPORTANT]
+> **For `/critter tame` permissions:** Also grant `critterguard.tame` for auto-complete functionality.
 
+---
 
-### `/critter reload`
-Reloads the plugin's configuration file.
+## 🚀 Quick Start
 
-## All Commands & Permissions
-
-> [!important]
-> If giving access to either permission for  `/critter tame`, you must also grant `critterguard.tame`. This grants auto-complete abilities to the command.
-
-| Command                                                | Description                                                                                                 | Permission                                              |
-|--------------------------------------------------------|-------------------------------------------------------------------------------------------------------------|---------------------------------------------------------|
-| /critter access <add/remove> <full/passenger> <player> | Grant or remove a player's access to a mount.                                                               | critterguard.access                                     |
-| /critter list [entityType] [player] [page]             | Get a list of critters based on the specified criteria.                                                     | critterguard.list                                       |
-| /critter gps <identifier>                              | Get the coordinates of, and point your camera to, a critter you own that matches the specified identifier.  | critterguard.gps                                        |
-| /critter notifications [on/off]                        | Enable/disable mount notifications.                                                                         | critterguard.notifications                              |
-| /critter untame                                        | Untames a critter.                                                                                          | critterguard.untame.own <br> critterguard.untame.others |
-| /critter tame                                          | Tames a critter to the specified player.                                                                    | critterguard.tame                                       |
-| /critter tp <player> <identifier>                      | Teleports you to the critter that belongs to the player specified and who matches the specified identifier. | critterguard.tp                                         |
-| /critter tphere <player> <identifier>                  | Teleports the critter who belongs to the specified player and matches the specified identifier to you.      | critterguard.tphere                                     |
-| /critter reload                                        | Reloads the plugin's configuration file.                                                                    | critterguard.reload                                     |
+1. **Tame a creature** using the methods above
+2. **Set up access** with `/critter access add full <friend>`
+3. **Track your pets** with `/critter list`
+4. **Find lost creatures** using `/critter gps <name>`
+5. **Stay informed** with automatic notifications

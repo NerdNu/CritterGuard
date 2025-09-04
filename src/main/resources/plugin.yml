@@ -4,7 +4,8 @@ main: me.ppgome.critterGuard.CritterGuard
 api-version: '1.21.6'
 prefix: CritterGuard
 authors: [ PPGOME ]
-description: Locking and tracking for horses, camels, and happy ghasts.
+description: Locking and tracking for living mounts and tameable pets.
+softdepend: [ LibsDisguises ]
 
 commands:
   critter:
@@ -22,6 +23,8 @@ permissions:
   critterguard.gps:
     default: notop
   critterguard.notifications:
+    default: notop
+  critterguard.viewdisguise:
     default: notop
   critterguard.tame:
     default: op

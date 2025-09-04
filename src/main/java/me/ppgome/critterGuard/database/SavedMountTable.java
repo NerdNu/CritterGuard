@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * This class handles the database operations related to saved mounts.
- * It provides methods to retrieve all saved mounts and to save a new mount.
  */
 public class SavedMountTable {
 
@@ -21,6 +20,7 @@ public class SavedMountTable {
 
     /**
      * Constructor that initializes the SavedMountTable with the MountGuard plugin instance.
+     *
      * @param plugin the instance of the MountGuard plugin.
      */
     public SavedMountTable(CritterGuard plugin) {
@@ -32,6 +32,7 @@ public class SavedMountTable {
 
     /**
      * Retrieves all saved mounts from the database asynchronously.
+     *
      * @return a CompletableFuture that will contain a list of SavedMount objects.
      */
     public CompletableFuture<List<SavedMount>> getAllSavedMounts() {
@@ -58,6 +59,7 @@ public class SavedMountTable {
 
     /**
      * Saves a new or updated mount to the database asynchronously.
+     *
      * @param savedMount the SavedMount object to be saved.
      */
     public void save(SavedMount savedMount) {

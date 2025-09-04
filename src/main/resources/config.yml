@@ -1,10 +1,12 @@
 pluginPrefix: "<gold>[</gold><green>CritterGuard</green><gold>]</gold>"
 
 toggles:
+  # Lets
   canBreedLockedAnimals: true
   logMountNotifications: true
   logDismountNotifications: true
   logDeathNotifications: true
+  enableDisguiseSaddles: true
 
 messages:
   access:
@@ -52,6 +54,23 @@ messages:
     # When the provided username doesn't match any players who've played on the server before
     # PLACEHOLDER: <player> is replaced with the username provided by the player
     unableToFindPlayer: "<red>Unable to find player <yellow><player></yellow>.</red>"
+
+  disguise:
+    # Sent to a player when they mount a mount with a functioning disguise saddle
+    # PLACEHOLDER: <mount> is replaced with the name of the disguise
+    success: "<green>Your steed is disguised as <yellow><mount></yellow></green>"
+
+    # Sent to a player when they enable self-view for disguise saddles
+    viewSelfEnabled: "<green>You're now seeing your own mount's disguise. <yellow>Note that you won't be able to control it while this is enabled.</yellow></green>"
+
+    # Sent to a player when they disable self-view for disguise saddles
+    viewSelfDisabled: "<red>You're no longer seeing your own mount's disguise.</red>"
+
+    # Sent to a player when they run "/critter viewdisguise on" while it's already enabled.
+    alreadyEnabled: "<red>You're already seeing your mount's disguise.</red>"
+
+    # Sent to a player when they run "/critter viewdisguise off" while it's already disabled.
+    alreadyDisabled: "<red>You're already not seeing your mount's disguise.</red>"
 
   gps:
     # When no critters match the identifier provided by the player

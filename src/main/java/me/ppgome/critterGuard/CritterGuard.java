@@ -7,6 +7,9 @@ import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import me.ppgome.critterGuard.commands.CritterCommand;
 import me.ppgome.critterGuard.database.*;
+import me.ppgome.critterGuard.disguisesaddles.DisguiseSaddleHandler;
+import me.ppgome.critterGuard.disguisesaddles.LibsDisguiseProvider;
+import me.ppgome.critterGuard.utility.CritterTamingHandler;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -20,20 +23,20 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * MountGuard is a plugin for managing mount access permissions in Minecraft.
+ * CritterGuard is a plugin for managing mount access permissions and pet protections in Minecraft.
  * It allows players to control who can access their mounts and provides a database
  * to store mount-related information.
  */
 public final class CritterGuard extends JavaPlugin {
 
     /**
-     * The configuration for the MountGuard plugin.
+     * The configuration for the CritterGuard plugin.
      * This object holds various settings and options for the plugin.
      */
     CGConfig config;
 
     /**
-     * The URL for the SQLite database used by the MountGuard plugin.
+     * The URL for the SQLite database used by the CritterGuard plugin.
      * This database stores information about mount access permissions and saved mounts.
      */
     private static final String DATABASE_URL = "jdbc:sqlite:plugins/CritterGuard/CritterGuard.db";
@@ -92,6 +95,21 @@ public final class CritterGuard extends JavaPlugin {
      */
     private CritterCommand critterCommand;
 
+    /**
+     * Provides methods for taming critters and checking if they can be tamed.
+     */
+    private CritterTamingHandler critterTamingHandler;
+
+    /**
+     * Provides methods for disguising and undisguising mounts when using the disguise saddles feature.
+     */
+    private LibsDisguiseProvider disguiseProvider;
+
+    /**
+     * Handles the checking required for the disguise saddles feature.
+     */
+    private DisguiseSaddleHandler disguiseSaddleHandler;
+
     //------------------------------------------------------------------------------------------------------------------
 
     @Override
@@ -101,6 +119,13 @@ public final class CritterGuard extends JavaPlugin {
         setupDatabase();
         loadDatabaseData();
         critterCache = new CritterCache(this);
+        critterTamingHandler = new CritterTamingHandler(this);
+
+        if(config.ENABLE_DISGUISE_SADDLES && getServer().getPluginManager().getPlugin("LibsDisguises") != null) {
+            disguiseProvider = new LibsDisguiseProvider(this);
+            disguiseSaddleHandler = new DisguiseSaddleHandler(this);
+        }
+
         getServer().getPluginManager().registerEvents(new CGEventHandler(this), this);
         critterCommand = new CritterCommand(this);
         this.getCommand("critter").setExecutor(critterCommand);
@@ -170,7 +195,7 @@ public final class CritterGuard extends JavaPlugin {
                         critterCache.addSavedMount(savedMount);
                         playerMeta = registerNewPlayer(savedMount.getEntityOwnerUuid());
                         savedMount.setIndex(playerMeta.getOwnedList().size() + 1);
-                        playerMeta.addOwnedMount(savedMount);
+                        playerMeta.addOwnedAnimal(savedMount);
                     }
                     logInfo("Loaded " + savedMounts.size() + " saved mounts from the database.");
                 }
@@ -190,7 +215,7 @@ public final class CritterGuard extends JavaPlugin {
                     for(SavedPet savedPet : savedPets) {
                         playerMeta = registerNewPlayer(savedPet.getEntityOwnerUuid());
                         savedPet.setIndex(playerMeta.getOwnedList().size() + 1);
-                        playerMeta.addOwnedMount(savedPet);
+                        playerMeta.addOwnedAnimal(savedPet);
                     }
                     logInfo("Loaded " + savedPets.size() + " saved pets from the database.");
                 }
@@ -232,7 +257,7 @@ public final class CritterGuard extends JavaPlugin {
     }
 
     /**
-     * Logs an informational message to the server console with a MountGuard prefix.
+     * Logs an informational message to the server console with a CritterGuard prefix.
      * @param message the message to log
      */
     public void logInfo(String message) {
@@ -240,7 +265,7 @@ public final class CritterGuard extends JavaPlugin {
     }
 
     /**
-     * Logs an error message to the server console with a MountGuard prefix in red color, if supported by the console.
+     * Logs an error message to the server console with a CritterGuard prefix in red color, if supported by the console.
      * @param message the error message to log
      */
     public void logError(String message) {
@@ -250,7 +275,7 @@ public final class CritterGuard extends JavaPlugin {
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Returns the configuration object for the MountGuard plugin.
+     * Returns the configuration object for the CritterGuard plugin.
      * This object contains various settings and options for the plugin.
      *
      * @return the configuration object
@@ -287,14 +312,26 @@ public final class CritterGuard extends JavaPlugin {
         return savedPetDao;
     }
 
+    /**
+     * Returns the MountAccessTable instance
+     * @return the MountAccessTable instance
+     */
     public MountAccessTable getMountAccessTable() {
         return mountAccessTable;
     }
 
+    /**
+     * Returns the SavedMountTable instance
+     * @return the SavedMountTable instance
+     */
     public SavedMountTable getSavedMountTable() {
         return savedMountTable;
     }
 
+    /**
+     * Returns the SavedPetTable instance
+     * @return the SavedPetTable instance
+     */
     public SavedPetTable getSavedPetTable() {
         return savedPetTable;
     }
@@ -305,6 +342,30 @@ public final class CritterGuard extends JavaPlugin {
      */
     public CritterCache getCritterCache() {
         return critterCache;
+    }
+
+    /**
+     * Returns the CritterTamingHandler instance.
+     * @return the CritterTamingHandler instance.
+     */
+    public CritterTamingHandler getCritterTamingHandler() {
+        return critterTamingHandler;
+    }
+
+    /**
+     * Returns the LibsDisguiseProvider instance
+     * @return the LibsDisguiseProvider instance
+     */
+    public LibsDisguiseProvider getDisguiseProvider() {
+        return disguiseProvider;
+    }
+
+    /**
+     * Returns the DisguiseSaddleHandler instance
+     * @return the DisguiseSaddleHandler instance
+     */
+    public DisguiseSaddleHandler getDisguiseSaddleHandler() {
+        return disguiseSaddleHandler;
     }
 
 }

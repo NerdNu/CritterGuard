@@ -2,8 +2,11 @@ package me.ppgome.critterGuard;
 
 import io.papermc.paper.event.player.PlayerNameEntityEvent;
 import me.ppgome.critterGuard.database.*;
+import me.ppgome.critterGuard.disguisesaddles.DisguiseSaddleHandler;
+import me.ppgome.critterGuard.disguisesaddles.LibsDisguiseProvider;
 import me.ppgome.critterGuard.utility.CritterAccessHandler;
 import me.ppgome.critterGuard.utility.CritterTamingHandler;
+import me.ppgome.critterGuard.utility.MountSeatHandler;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
@@ -21,19 +24,52 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Handles events related to mount management.
+ * Handles events related to critter management.
  * This class will contain methods to handle various events such as mount spawning,
  * player interactions with mounts, and any other relevant events.
  */
 public class CGEventHandler implements Listener {
 
+    /**
+     * The instance of the plugin.
+     */
     private CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the SavedMountTable for interacting with the database.
+     */
     private SavedMountTable savedMountTable;
+    /**
+     * The instance of the SavedPetTable for interacting with the database.
+     */
     private SavedPetTable savedPetTable;
+    /**
+     * The instance of the CritterCache for interacting with the data stored in-memory.
+     */
     private CritterCache critterCache;
+    /**
+     * The instance of the CritterTamingHandler for handling all taming-related tasks.
+     */
     private CritterTamingHandler tamingHandler;
+    /**
+     * The instance of the CritterAccessHandler for handling all access-related tasks.
+     */
     private CritterAccessHandler accessHandler;
+    /**
+     * The instance of the CritterAccessHandler for the logic behind disguised saddles.
+     */
+    private DisguiseSaddleHandler disguiseSaddleHandler;
+    /**
+     * The instance of the CritterAccessHandler for interacting directly with the LibsDisguises API.
+     */
+    private LibsDisguiseProvider disguiseProvider;
+    /**
+     * The instance of the MountSeatHandler for swapping player seats on multi-seat mounts.
+     */
+    private MountSeatHandler mountSeatHandler;
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -45,6 +81,9 @@ public class CGEventHandler implements Listener {
         this.critterCache = plugin.getCritterCache();
         this.tamingHandler = new CritterTamingHandler(plugin);
         this.accessHandler = new CritterAccessHandler(plugin);
+        this.disguiseSaddleHandler = plugin.getDisguiseSaddleHandler();
+        this.disguiseProvider = plugin.getDisguiseProvider();
+        this.mountSeatHandler = new MountSeatHandler(plugin);
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -56,6 +95,7 @@ public class CGEventHandler implements Listener {
         if(playerMeta == null) {
             critterCache.addPlayerMeta(new PlayerMeta(playerUuid, plugin));
         }
+        disguiseSaddleHandler.refreshSaddleDisguises();
     }
 
     @EventHandler
@@ -87,6 +127,7 @@ public class CGEventHandler implements Listener {
     @EventHandler
     public void onCritterInteract(PlayerInteractEntityEvent event) {
         Entity entity = event.getRightClicked();
+
         if (!tamingHandler.canHandleTaming(entity)) return;
 
         Player player = event.getPlayer();
@@ -129,6 +170,15 @@ public class CGEventHandler implements Listener {
         }
     }
 
+    /**
+     * Handles the logic required for players who are clicking on the mount to modify the access of another player.
+     *
+     * @param playerUuid The UUID of the player who is clicking the mount
+     * @param player The player who is clicking the mount
+     * @param savedMount The SavedMount instance of the mount that is being clicked
+     * @param entityUuid The UUID of the mount that is being clicked
+     * @param entity The mount that is being clicked
+     */
     private void interactAccess(UUID playerUuid, Player player, SavedMount savedMount, UUID entityUuid, Entity entity) {
         MountAccess mountAccess = critterCache.getAwaitingAccess(playerUuid);
         UUID beingAddedUuid = UUID.fromString(mountAccess.getPlayerUuid());
@@ -140,6 +190,14 @@ public class CGEventHandler implements Listener {
         }
     }
 
+    /**
+     * Handles the logic required for players who are clicking on the mount to tame it to another player.
+     *
+     * @param playerUuid The UUID of the player who is clicking the mount
+     * @param player The player who is clicking the mount
+     * @param entityUuid The UUID of the mount that is being clicked
+     * @param entity The mount that is being clicked
+     */
     private void interactTame(UUID playerUuid, Player player, UUID entityUuid, Entity entity) {
         savedPetTable.getSavedPet(entityUuid.toString()).thenAccept(savedPet -> Bukkit.getScheduler().runTask(plugin, () -> {
             if(savedPet == null) {
@@ -193,9 +251,11 @@ public class CGEventHandler implements Listener {
     @EventHandler
     public void onCritterMount(EntityMountEvent event) {
         Entity passenger = event.getEntity();
-        if(!(passenger instanceof Player player)) return; // Only handle player mounts
         Entity mount = event.getMount();
         UUID mountUuid = mount.getUniqueId();
+
+        if(mountSeatHandler.isPlayer(mount)) return; // For disguised saddle mounting
+        if(!(passenger instanceof Player player)) return; // Only handle player mounts
 
         // Handle a saved mount
         SavedMount savedMount = critterCache.getSavedMount(mountUuid);
@@ -204,28 +264,57 @@ public class CGEventHandler implements Listener {
             boolean isFullAccess = savedMount.hasFullAccess(passenger.getUniqueId());
             if(!mount.getPassengers().isEmpty()) {
                 // Player has passenger access or is the owner, allow mounting
-                if(hasAccess || savedMount.isOwner(passenger.getUniqueId())) return;
+                if(hasAccess || savedMount.isOwner(passenger.getUniqueId())) {
+                    if(!disguiseProvider.isDisguised(mount)) return;
+                    event.setCancelled(true);
+
+                    List<Entity> playerStack = mountSeatHandler.getPlayerStack(mount);
+                    if(playerStack.size() >= mountSeatHandler.getMaxSeats(mount)) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                    Entity stackLast = playerStack.getLast();
+                    if(stackLast.getUniqueId().equals(player.getUniqueId())) return;
+                    playerStack.getLast().addPassenger(player);
+                }
                 // Player has full access, allow mounting
             } else if(isFullAccess || savedMount.isOwner(passenger.getUniqueId())) {
+
+                // Notify owner that another player is controlling their mount
                 if(isFullAccess) {
-                    notifyPlayer(player, savedMount, config.NOTIFICATION_MOUNTED);
-                    plugin.logInfo(player.getName() + " started riding " +
-                            savedMount.getEntityOwnerUuid() + "'s mount: " + savedMount.getEntityUuid());
+                    // Check passenger list AFTER the event to see if the passenger of this event is now the controller
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if(mount.getPassengers().getFirst().getUniqueId().equals(passenger.getUniqueId())) {
+                            notifyPlayer(player, savedMount, config.NOTIFICATION_MOUNTED);
+                            plugin.logInfo(player.getName() + " started riding " +
+                                    savedMount.getEntityOwnerUuid() + "'s mount: " + savedMount.getEntityUuid());
+                        }
+                    }, 5L);
                 }
+                String disguiseType = disguiseSaddleHandler.getDisguiseFromSaddle(mount);
+                if(disguiseType != null) disguiseSaddleHandler.applySaddleDisguise(mount, player, disguiseType);
                 return;
             }
             // Player does not have access, prevent mounting
             event.setCancelled(true);
-            passenger.sendMessage(config.PERMISSION_MOUNT);
+            if(!disguiseProvider.isDisguised(mount)) passenger.sendMessage(config.PERMISSION_MOUNT);
             return;
         }
 
-        if (mount instanceof Camel || mount instanceof HappyGhast) {
+        if (mountSeatHandler.isCamel(mount) || mountSeatHandler.isHappyGhast(mount)) {
             tamingHandler.handleTaming(player, mount);
         }
 
     }
 
+    /**
+     * Send a notification to the owner of the mount regarding other users riding them.
+     * Used for mounting, dismounting, and deaths.
+     *
+     * @param player The player triggering the notification
+     * @param savedMount The mount the notification is about
+     * @param notificationType The type of notification
+     */
     public void notifyPlayer(Player player, SavedMount savedMount, String notificationType) {
         Player owner = Bukkit.getPlayer(savedMount.getEntityOwnerUuid());
         // Send message to owner
@@ -249,20 +338,64 @@ public class CGEventHandler implements Listener {
         Player player = event.getPlayer();
         Entity mount = player.getVehicle();
 
-        if((!(mount instanceof Camel) && !(mount instanceof HappyGhast))) return;
+        if(mountSeatHandler.isPlayer(mount)) mountSeatHandler.teleportDown(mount, player);
 
+        if((!(mountSeatHandler.isCamel(mount)) && !(mountSeatHandler.isHappyGhast(mount)))) return;
+
+        if(disguiseProvider.isDisguised(mount)) {
+            disguisedSeatSwap(player, mount);
+        } else {
+            normalSeatSwap(player, mount);
+        }
+    }
+
+    /**
+     * Handles seat swapping for non-disguised, multi-seated mobs.
+     *
+     * @param player The player dismounting from the mount
+     * @param mount The mount being dismounted
+     */
+    private void normalSeatSwap(Player player, Entity mount) {
         List<Entity> passengers = mount.getPassengers();
-        if(!accessHandler.isDriver(player, passengers)) return;
+        if(!mountSeatHandler.isDriver(player, passengers)) return;
         passengers.remove(player);
 
         SavedMount savedMount = critterCache.getSavedMount(mount.getUniqueId());
         if(savedMount == null) return;
-        Entity newDriver = accessHandler.findNewDriver(passengers, savedMount);
+        Entity newDriver = mountSeatHandler.findNewDriver(passengers, savedMount);
 
         if(newDriver != null) {
-            accessHandler.transferControl(mount, passengers, newDriver);
-        } else {
-            accessHandler.dismountAllPassengers(mount, passengers);
+            mountSeatHandler.transferControl(mount, passengers, newDriver);
+        } else if(!passengers.isEmpty()) {
+            mountSeatHandler.dismountAllPassengers(mount, passengers);
+        }
+    }
+
+    /**
+     * Handles seat swapping for disguised, multi-seated mobs.
+     *
+     * @param player The player dismounting from the mount
+     * @param mount The mount being dismounted
+     */
+    private void disguisedSeatSwap(Player player, Entity mount) {
+        if(!mountSeatHandler.isDriverDisguised(player)) {
+            mountSeatHandler.fixPlayerStack(mount, player);
+            return;
+        }
+        SavedMount savedMount = critterCache.getSavedMount(mount.getUniqueId());
+        if(savedMount == null) return;
+
+        List<Entity> passengers = mountSeatHandler.getPlayerStack(mount);
+        passengers.remove(player);
+        if(mountSeatHandler.isHappyGhast(mount) && mount.getPassengers().size() > 1) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> mountSeatHandler.teleportDown(mount, player), 5L);
+        }
+
+        Entity newDriver = mountSeatHandler.findNewDriver(passengers, savedMount);
+        if(newDriver != null) {
+            mountSeatHandler.transferControlDisguised(mount, passengers, newDriver);
+        } else if(!passengers.isEmpty()) {
+            mountSeatHandler.disbandPlayerStack(mount);
         }
     }
 
@@ -306,20 +439,30 @@ public class CGEventHandler implements Listener {
     @EventHandler
     public void onCritterDismount(EntityDismountEvent event) {
         Entity entity = event.getDismounted();
+        Entity dismounting = event.getEntity();
+
         if (tamingHandler.isMountableEntity(entity)) {
-            // TODO: REMOVE THIS
-            System.out.println("Notify 1");
             SavedMount savedMount = critterCache.getSavedMount(entity.getUniqueId());
-            if (savedMount != null && event.getEntity() instanceof Player player) {
-                // TODO: REMOVE THIS
-                System.out.println("Notify 2");
+            if (savedMount != null && dismounting instanceof Player player) {
+
+                // Check to handle disguised happy ghast dismounts
+                if(mountSeatHandler.isHappyGhast(entity) && disguiseProvider.isDisguised(entity)
+                        && entity.getPassengers().size() > 1) {
+                    mountSeatHandler.teleportDown(entity, player);
+                }
+
+                // Handles notifying the owner that someone is on their mount, if applicable
                 UUID playerUUID = player.getUniqueId();
-                if (savedMount.hasFullAccess(playerUUID) && !savedMount.isOwner(playerUUID)) {
-                    // TODO: REMOVE THIS
-                    System.out.println("Notify 3");
+                if (savedMount.hasFullAccess(playerUUID) && !savedMount.isOwner(playerUUID) &&
+                        entity.getPassengers().getFirst().getUniqueId().equals(playerUUID)) {
                     notifyPlayer(player, savedMount, config.NOTIFICATION_DISMOUNTED);
                     plugin.logInfo(player.getName() + " stopped riding " +
                             savedMount.getEntityOwnerUuid() + "'s mount: " + savedMount.getEntityUuid());
+                }
+
+                // If nobody else will be on this mount after this dismount, undisguise it
+                if(entity.getPassengers().size() <= 1) {
+                    disguiseProvider.removeDisguiseForAll(entity);
                 }
             }
         }

@@ -9,6 +9,15 @@ import java.util.List;
 
 public class CommandUtils {
 
+    /**
+     * Searches a player's critters to find one that matches the specified identifier.
+     * This checks the index numbers of the critters in "/cg list" as well as their names and UUIDs.
+     *
+     * @param critterIdentifier The identifier that will be checked against the player's critters
+     * @param playerMeta The player's playermeta to fetch their critters
+     * @param plugin The instance of the plugin
+     * @return An entity that matches the identifier. Null if none are found
+     */
     public static Entity searchByIdentifier(String critterIdentifier, PlayerMeta playerMeta, CritterGuard plugin) {
         // Check if the identifier is numeric (index-based)
         if (critterIdentifier.matches("\\d+")) {
@@ -30,5 +39,4 @@ public class CommandUtils {
         }
         return null;
     }
-
 }
