@@ -155,13 +155,3 @@ The `<identifier>` parameter accepts:
 
 > [!IMPORTANT]
 > **For `/critter tame` permissions:** Also grant `critterguard.tame` for auto-complete functionality.
-
----
-
-## 🚀 Quick Start
-
-1. **Tame a creature** using the methods above
-2. **Set up access** with `/critter access add full <friend>`
-3. **Track your pets** with `/critter list`
-4. **Find lost creatures** using `/critter gps <name>`
-5. **Stay informed** with automatic notifications
