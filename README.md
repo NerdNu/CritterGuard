@@ -102,6 +102,11 @@ Remove taming from a creature you own.
 #### `/critter notifications [on/off]`
 Toggle mount notifications on or off.
 
+#### `/critter showdisguise [on/off]`
+Toggle viewing the disguise of the mount you're controlling.
+>[!IMPORTANT]
+> With this toggled on, you won't be able to move your mount. Toggle it off to regain control.
+
 ### 🛠️ Staff Commands
 
 #### `/critter tame <player>`
@@ -135,17 +140,18 @@ The `<identifier>` parameter accepts:
 
 ## 📋 Complete Command Reference
 
-| Command | Description | Permission |
-|---------|-------------|------------|
-| `/critter access <add/remove> <full/passenger> <player>` | Grant or remove mount access | `critterguard.access` |
-| `/critter list [entityType] [player] [page]` | List creatures by criteria | `critterguard.list` |
-| `/critter gps <identifier>` | Locate and point to your creature | `critterguard.gps` |
-| `/critter notifications [on/off]` | Toggle mount notifications | `critterguard.notifications` |
-| `/critter untame` | Untame a creature | `critterguard.untame.own`<br>`critterguard.untame.others` |
-| `/critter tame <player>` | Tame creature to specified player | `critterguard.tame` |
-| `/critter tp <player> <identifier>` | Teleport to another's creature | `critterguard.tp` |
-| `/critter tphere <player> <identifier>` | Teleport creature to you | `critterguard.tphere` |
-| `/critter reload` | Reload configuration | `critterguard.reload` |
+| Command                                                  | Description                                           | Permission                                                |
+|----------------------------------------------------------|-------------------------------------------------------|-----------------------------------------------------------|
+| `/critter access <add/remove> <full/passenger> <player>` | Grant or remove mount access                          | `critterguard.access`                                     |
+| `/critter list [entityType] [player] [page]`             | List creatures by criteria                            | `critterguard.list`                                       |
+| `/critter gps <identifier>`                              | Locate and point to your creature                     | `critterguard.gps`                                        |
+| `/critter notifications [on/off]`                        | Toggle mount notifications                            | `critterguard.notifications`                              |
+| `/critter showdisguise [on/off]`                         | Toggles the disguise of the entity you're controlling | `critterguard.showdisguise`                                |
+| `/critter untame`                                        | Untame a creature                                     | `critterguard.untame.own`<br>`critterguard.untame.others` |
+| `/critter tame <player>`                                 | Tame creature to specified player                     | `critterguard.tame`                                       |
+| `/critter tp <player> <identifier>`                      | Teleport to another's creature                        | `critterguard.tp`                                         |
+| `/critter tphere <player> <identifier>`                  | Teleport creature to you                              | `critterguard.tphere`                                     |
+| `/critter reload`                                        | Reload configuration                                  | `critterguard.reload`                                     |
 
 > [!IMPORTANT]
 > **For `/critter tame` permissions:** Also grant `critterguard.tame` for auto-complete functionality.
