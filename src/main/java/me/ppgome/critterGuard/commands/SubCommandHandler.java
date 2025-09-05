@@ -5,6 +5,9 @@ import org.bukkit.command.CommandSender;
 
 import java.util.List;
 
+/**
+ * An interface that provides common methods for all subcommands.
+ */
 public interface SubCommandHandler {
 
     /**

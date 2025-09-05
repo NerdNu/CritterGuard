@@ -123,11 +123,13 @@ messages:
     command: "<red>You do not have permission to use this command.</red>"
 
     # When a player tries to interact with an entity they don't have permission for
-    interact: "<red>You do not have permission to interact with this entity.</red>"
+    # PLACEHOLDER: <player> is replaced with the critter's owner
+    interact: "<red>You do not have permission to interact with this critter. It is owned by <yellow><player></yellow>.</red>"
 
     # When a player tries to mount an entity that supports multiple passengers, nobody with control
     # access is present, and they have passenger access.
-    mount: "<red>You do not have permission to mount this entity alone.</red>"
+    # PLACEHOLDER: <player> is replaced with the critter's owner
+    mount: "<red>You do not have permission to mount this entity alone. It is owned by <yellow><player></yellow>.</red>"
 
   seatSwapping:
     # When a player successfully swaps seats to take control of a mount

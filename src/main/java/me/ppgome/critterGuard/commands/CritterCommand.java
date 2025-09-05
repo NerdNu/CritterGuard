@@ -14,14 +14,27 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
+/**
+ * This class handles all Bukkit command interaction and registers all of CritterGuard's subcommands.
+ */
 public class CritterCommand implements CommandExecutor, TabCompleter {
 
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
-
+    /**
+     * The map of CritterGuard's subcommands. Stored as name to SubCommandHandler instance.
+     */
     private final Map<String, SubCommandHandler> subCommands = new HashMap<>();
 
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * Initializes the plugin's command handler and registers all subcommands.
+     *
+     * @param plugin The instance of the plugin.
+     */
     public CritterCommand(CritterGuard plugin) {
         this.config = plugin.getCGConfig();
         registerSubCommand(new AccessSubCommand(plugin));
@@ -38,6 +51,11 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
 
     //------------------------------------------------------------------------------------------------------------------
 
+    /**
+     * Stores the specified subcommand in the map.
+     *
+     * @param subCommandHandler The subcommand instance
+     */
     protected void registerSubCommand(SubCommandHandler subCommandHandler) {
         subCommands.put(subCommandHandler.getCommandName(), subCommandHandler);
     }
@@ -55,7 +73,7 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
         SubCommandHandler subCommandHandler = subCommands.get(subCommandName);
 
         if (subCommandHandler == null) {
-            sender.sendMessage(MessageUtils.miniMessageDeserialize(config.PREFIX + "<red>Unknown subcommand: " +
+            sender.sendMessage(MessageUtils.miniMessageDeserialize(config.PREFIX + " <red>Unknown subcommand: " +
                 subCommandName + "</red>"));
             return true;
         }

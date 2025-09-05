@@ -14,15 +14,32 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * This class represents the command used to show a player their (or another player, if specified)'s list of critters.
+ */
 public class ListSubCommand implements SubCommandHandler {
 
+    /**
+     * The instance of the plugin.
+     */
     private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the plugin's cache.
+     */
     private CritterCache critterCache;
+    /**
+     * The list of entity types players can filter by.
+     */
     private List<String> entityTypes;
+    /**
+     * The instance of the plugin's CritterTamingHandler.
+     */
     private CritterTamingHandler tamingHandler;
 
     /**
@@ -68,7 +85,6 @@ public class ListSubCommand implements SubCommandHandler {
             case 2:
                 isEntityType = entityTypes.contains(args[0].toLowerCase());
                 isPageNumber = args[1].matches("\\d+");
-                player.sendMessage(isEntityType + " " + isPageNumber);
                 if(isEntityType && isPageNumber) {
                     getData(player, args[0].toLowerCase(), critterCache.getPlayerMeta(player.getUniqueId()),
                             Integer.parseInt(args[1]));
@@ -137,6 +153,13 @@ public class ListSubCommand implements SubCommandHandler {
         }));
     }
 
+    /**
+     * Applies the entity filter so that only the specified entity type appears in the list.
+     *
+     * @param animalList The unfiltered list of all critters
+     * @param entityType The entity type to filter by
+     * @return The filtered list of critters
+     */
     private List<SavedAnimal> getFilteredList(List<SavedAnimal> animalList, String entityType) {
         List<SavedAnimal> filteredList = new ArrayList<>();
 
@@ -217,6 +240,12 @@ public class ListSubCommand implements SubCommandHandler {
         player.sendMessage(message);
     }
 
+    /**
+     * Asynchronously fetches a player's playermeta by converting username to UUID using Bukkit's OfflinePlayer object.
+     *
+     * @param playerName The name of the player whose playermeta is being fetched
+     * @return The playermeta instance if the player has played before
+     */
     private CompletableFuture<PlayerMeta> getPlayerMeta(String playerName) {
         return CompletableFuture.supplyAsync(() -> {
             OfflinePlayer player = Bukkit.getOfflinePlayer(playerName);

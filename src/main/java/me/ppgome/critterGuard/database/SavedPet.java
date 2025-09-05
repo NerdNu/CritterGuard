@@ -2,8 +2,14 @@ package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.field.DatabaseField;
 
+/**
+ * This class represents a Minecraft pet. These are defined as tameable mobs that can't be ridden.
+ */
 public class SavedPet extends SavedAnimal {
 
+    /**
+     * The pet's sound type. Only affects wolves.
+     */
     @DatabaseField
     private String petSoundType;
 
@@ -21,7 +27,7 @@ public class SavedPet extends SavedAnimal {
      * @param petName the name of the pet.
      * @param ownerUuid the UUID of the owner.
      * @param ownerName the name of the owner.
-     * @param petType the type of the pet (e.g., horse, llama).
+     * @param petType the type of the pet (e.g., wolf, cat).
      * @param petSoundType the sound type of the pet (e.g., normal, undead).
      */
     public SavedPet(String petUuid, String petName, String ownerUuid, String ownerName, String petType, String color,
@@ -41,7 +47,7 @@ public class SavedPet extends SavedAnimal {
      * @param petName the name of the pet.
      * @param ownerUuid the UUID of the owner.
      * @param ownerName the name of the owner.
-     * @param petType the type of the pet (e.g., horse, llama).
+     * @param petType the type of the pet (e.g., wolf, cat).
      */
     public SavedPet(String petUuid, String petName, String ownerUuid, String ownerName, String petType, String color) {
         this.entityUuid = petUuid;
@@ -49,15 +55,5 @@ public class SavedPet extends SavedAnimal {
         this.entityOwnerUuid = ownerUuid;
         this.entityType = petType;
         this.color = color;
-    }
-
-    //------------------------------------------------------------------------------------------------------------------
-
-    public String getPetSoundType() {
-        return petSoundType;
-    }
-
-    public void setPetSoundType(String petSoundType) {
-        this.petSoundType = petSoundType;
     }
 }

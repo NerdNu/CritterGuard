@@ -7,6 +7,9 @@ import org.bukkit.entity.Entity;
 
 import java.util.List;
 
+/**
+ * A utility that provides static methods for commands.
+ */
 public class CommandUtils {
 
     /**

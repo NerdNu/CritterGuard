@@ -3,13 +3,15 @@ package me.ppgome.critterGuard.commands.tpcommands;
 import me.ppgome.critterGuard.CritterGuard;
 import me.ppgome.critterGuard.PlayerMeta;
 import me.ppgome.critterGuard.commands.CommandUtils;
-import me.ppgome.critterGuard.utility.MessageUtils;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+/**
+ * A utility class containing static methods and a functional interface for the teleportation commands.
+ */
 public class TeleportUtils {
 
     /**
@@ -55,7 +57,9 @@ public class TeleportUtils {
         });
     }
 
-    // Functional interface for teleport actions
+    /**
+     * Functional interface for teleport actions.
+     */
     public interface TeleportAction {
         void execute(Player sender, Entity critterEntity, String targetPlayerName, CritterGuard plugin);
     }

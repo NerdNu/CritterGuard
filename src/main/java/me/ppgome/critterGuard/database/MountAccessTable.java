@@ -13,9 +13,13 @@ import java.util.concurrent.CompletableFuture;
  */
 public class MountAccessTable {
 
-    // The Dao instance for MountAccess, used to perform database operations.
+    /**
+     * The Dao instance for MountAccess, used to perform database operations.
+     */
     private Dao<MountAccess, Integer> mountAccessDao;
-    // The instance of the MountGuard plugin, used to access plugin methods and properties.
+    /**
+     * The instance of the MountGuard plugin, used to access plugin methods and properties.
+     */
     private CritterGuard plugin;
 
     /**

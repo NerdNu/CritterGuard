@@ -6,18 +6,26 @@ import me.ppgome.critterGuard.CritterGuard;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * This class provides the methods for interacting with the SavedPet table in the database.
+ */
 public class SavedPetTable {
 
-    // The DAO for accessing saved mounts in the database.
+    /**
+     * The DAO for accessing saved pets in the database.
+     */
     private Dao<SavedPet, String> savedPetDao;
-    // The instance of the MountGuard plugin.
+    /**
+     * The instance of the plugin.
+     */
     private CritterGuard plugin;
 
     //------------------------------------------------------------------------------------------------------------------
 
     /**
-     * Constructor that initializes the SavedMountTable with the MountGuard plugin instance.
-     * @param plugin the instance of the MountGuard plugin.
+     * Constructor that initializes the SavedPetTable with the plugin instance.
+     *
+     * @param plugin the instance of the plugin.
      */
     public SavedPetTable(CritterGuard plugin) {
         this.plugin = plugin;
@@ -28,6 +36,7 @@ public class SavedPetTable {
 
     /**
      * Retrieves a SavedPet by its UUID.
+     *
      * @param petUuid the UUID of the pet.
      * @return the SavedPet object, or null if not found.
      */
@@ -42,6 +51,11 @@ public class SavedPetTable {
         });
     }
 
+    /**
+     * Retrieves all saved pets from the database.
+     *
+     * @return A list of all saved pets.
+     */
     public CompletableFuture<List<SavedPet>> getAllSavedPets() {
         return CompletableFuture.supplyAsync(() -> {
             try {
@@ -53,6 +67,11 @@ public class SavedPetTable {
         });
     }
 
+    /**
+     * Removes a saved pet's record from the database.
+     *
+     * @param savedPet The saved pet being removed
+     */
     public void delete(SavedPet savedPet) {
         CompletableFuture.runAsync(() -> {
             try {
@@ -63,6 +82,11 @@ public class SavedPetTable {
         });
     }
 
+    /**
+     * Adds/updates a saved pet to the database.
+     *
+     * @param savedPet The saved pet being saved/updated
+     */
     public void save(SavedPet savedPet) {
         CompletableFuture.runAsync(() -> {
             try {

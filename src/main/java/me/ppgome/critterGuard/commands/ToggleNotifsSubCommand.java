@@ -11,14 +11,27 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
+/**
+ * This class represents the command used to toggle owner notifications.
+ */
 public class ToggleNotifsSubCommand implements SubCommandHandler {
 
-    private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the plugin's cache.
+     */
     private CritterCache critterCache;
 
+    /**
+     * Constructor for ToggleNotifsSubCommand.
+     * Initializes the command with the plugin instance.
+     *
+     * @param plugin The instance of the CritterGuard plugin.
+     */
     public ToggleNotifsSubCommand(CritterGuard plugin) {
-        this.plugin = plugin;
         this.config = plugin.getCGConfig();
         this.critterCache = plugin.getCritterCache();
     }

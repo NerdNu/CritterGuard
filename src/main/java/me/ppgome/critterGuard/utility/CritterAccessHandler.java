@@ -12,6 +12,7 @@ import org.bukkit.entity.HappyGhast;
 import org.bukkit.entity.Player;
 
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * This class provides the methods relating to access that are required by the plugin.
@@ -207,5 +208,14 @@ public class CritterAccessHandler {
                 }
             });
         });
+    }
+
+    /**
+     * Asynchronously fetches the name of the owner of a mount from their UUID.
+     * @param ownerUuid The UUID of the owner
+     * @return The name of the owner
+     */
+    public CompletableFuture<String> getOwnerName(UUID ownerUuid) {
+        return CompletableFuture.supplyAsync(() -> Bukkit.getOfflinePlayer(ownerUuid).getName());
     }
 }

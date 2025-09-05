@@ -7,13 +7,17 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * This class handles the database operations related to saved mounts.
+ * This class provides the methods for interacting with the SavedMount table in the database.
  */
 public class SavedMountTable {
 
-    // The DAO for accessing saved mounts in the database.
+    /**
+     * The DAO for accessing saved mounts in the database.
+     */
     private Dao<SavedMount, String> savedMountDao;
-    // The instance of the MountGuard plugin.
+    /**
+     * The instance of the plugin.
+     */
     private CritterGuard plugin;
 
     //------------------------------------------------------------------------------------------------------------------
@@ -46,6 +50,11 @@ public class SavedMountTable {
         });
     }
 
+    /**
+     * Deletes a saved mount record from the database.
+     *
+     * @param savedMount The saved mount being deleted
+     */
     public void delete(SavedMount savedMount) {
         CompletableFuture.runAsync(() -> {
             try {

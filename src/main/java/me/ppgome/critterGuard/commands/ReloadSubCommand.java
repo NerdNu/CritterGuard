@@ -8,8 +8,14 @@ import org.bukkit.command.CommandSender;
 
 import java.util.List;
 
+/**
+ * This class represents the command used to reload the plugin's configuration.
+ */
 public class ReloadSubCommand implements SubCommandHandler {
 
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
 
     /**

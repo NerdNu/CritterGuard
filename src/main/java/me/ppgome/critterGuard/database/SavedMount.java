@@ -13,15 +13,21 @@ import java.util.UUID;
  */
 public class SavedMount extends SavedAnimal {
 
-    // The date when the mount was last locked or saved.
+    /**
+     * The date when the mount is locked/initially saved
+     */
     @DatabaseField
     private Date lockDate;
 
-    // The style of the mount, applicable for horses (e.g., "BLACK_DOTS", "WHITE", etc.).
+    /**
+     * The style of the mount, applicable for horses (e.g., "BLACK_DOTS", "WHITE", etc.).
+     */
     @DatabaseField
     private String style;
 
-    // A list of UUIDs and their corresponding access levels for the mount.
+    /**
+     * A list of UUIDs and their corresponding access levels for the mount.
+     */
     HashMap<UUID, MountAccess> accessList = new HashMap<>();
 
     //------------------------------------------------------------------------------------------------------------------

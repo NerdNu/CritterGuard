@@ -66,8 +66,8 @@ public class CGConfig {
     public Component NOTIFICATION_ALREADY_ON;
     public Component NOTIFICATION_ALREADY_OFF;
     public Component PERMISSION_COMMAND;
-    public Component PERMISSION_INTERACT;
-    public Component PERMISSION_MOUNT;
+    public String PERMISSION_INTERACT;
+    public String PERMISSION_MOUNT;
     public String SEAT_SWAP_SUCCESS;
     public Component SEAT_SWAP_FAILURE;
     public Component TAMING_TO_THEMSELVES;
@@ -100,6 +100,7 @@ public class CGConfig {
         mm = MiniMessage.miniMessage();
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
+        reload();
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -198,10 +199,10 @@ public class CGConfig {
         String permissionPath = "messages.permission.";
         PERMISSION_COMMAND = mm.deserialize(PREFIX
                 + " " + config.getString(permissionPath + "command", errorMessage));
-        PERMISSION_INTERACT = mm.deserialize(PREFIX
-                + " " + config.getString(permissionPath + "interact", errorMessage));
-        PERMISSION_MOUNT = mm.deserialize(PREFIX
-                + " " + config.getString(permissionPath + "mount", errorMessage));
+        PERMISSION_INTERACT = PREFIX
+                + " " + config.getString(permissionPath + "interact", errorMessage);
+        PERMISSION_MOUNT = PREFIX
+                + " " + config.getString(permissionPath + "mount", errorMessage);
 
         // --SEAT SWAPPING
         String seatSwapPath = "messages.seatSwapping.";

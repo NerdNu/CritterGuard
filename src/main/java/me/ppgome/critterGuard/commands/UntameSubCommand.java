@@ -13,12 +13,30 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * This class represents the command used to untame a critter.
+ */
 public class UntameSubCommand implements SubCommandHandler {
 
+    /**
+     * The instance of the plugin.
+     */
     private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the plugin's cache.
+     */
     private CritterCache critterCache;
 
+    /**
+     * Constructor for UntameSubCommand.
+     * Initializes the command with the plugin instance.
+     *
+     * @param plugin The instance of the CritterGuard plugin.
+     */
     public UntameSubCommand(CritterGuard plugin) {
         this.plugin = plugin;
         this.config = plugin.getCGConfig();

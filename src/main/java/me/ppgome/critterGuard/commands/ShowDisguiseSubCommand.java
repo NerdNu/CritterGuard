@@ -6,7 +6,6 @@ import me.ppgome.critterGuard.disguisesaddles.DisguiseSaddleHandler;
 import me.ppgome.critterGuard.disguisesaddles.LibsDisguiseProvider;
 import me.ppgome.critterGuard.utility.CritterTamingHandler;
 import me.ppgome.critterGuard.utility.MessageUtils;
-import me.ppgome.critterGuard.utility.MountSeatHandler;
 import net.kyori.adventure.text.Component;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
@@ -14,14 +13,38 @@ import org.bukkit.entity.Player;
 
 import java.util.List;
 
+/**
+ * This class represents the command used to toggle the status of a mount controller seeing their own mount's disguise.
+ */
 public class ShowDisguiseSubCommand implements SubCommandHandler {
 
-    private CritterGuard plugin;
+    /**
+     * The instance of the plugin.
+     */
+    private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the plugin's DisguiseSaddleHandler
+     */
     private DisguiseSaddleHandler disguiseHandler;
+    /**
+     * The instance of the plugin's LibsDisguiseProvider
+     */
     private LibsDisguiseProvider disguiseProvider;
+    /**
+     * The instance of the plugin's CritterTamingHandler
+     */
     private CritterTamingHandler critterTamingHandler;
 
+    /**
+     * Constructor for ShowDisguiseSubCommand.
+     * Initializes the command with the plugin instance.
+     *
+     * @param plugin The instance of the CritterGuard plugin.
+     */
     public ShowDisguiseSubCommand(CritterGuard plugin) {
         this.plugin = plugin;
         config = plugin.getCGConfig();
@@ -73,12 +96,24 @@ public class ShowDisguiseSubCommand implements SubCommandHandler {
         }
     }
 
+    /**
+     * Toggles the visibility of the player's own mount's disguise on.
+     *
+     * @param mount The mount whose disguise is becoming visible
+     * @param player The player who is having their state toggled on
+     */
     private void toggleOn(Entity mount, Player player) {
         if(disguiseHandler.toggleSaddleDisguise(mount, player, true)) {
             player.sendMessage(config.DISGUISE_VIEW_SELF_ENABLED);
         }
     }
 
+    /**
+     * Toggles the visibility of the player's own mount's disguise off.
+     *
+     * @param mount The mount whose disguise is being removed for the player
+     * @param player The player who is having their state toggled off
+     */
     private void toggleOff(Entity mount, Player player) {
         if(disguiseHandler.toggleSaddleDisguise(mount, player, false)) {
             player.sendMessage(config.DISGUISE_VIEW_SELF_DISABLED);

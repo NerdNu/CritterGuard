@@ -12,12 +12,30 @@ import org.bukkit.entity.Entity;
 
 import java.util.List;
 
+/**
+ * This class represents the command used to give the player the coordinates of a specific one of their critters.
+ */
 public class GPSSubCommand implements SubCommandHandler {
 
+    /**
+     * The instance of the plugin.
+     */
     private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the plugin's cache.
+     */
     private CritterCache critterCache;
 
+    /**
+     * Constructor for GPSSubCommand.
+     * Initializes the command with the plugin instance.
+     *
+     * @param plugin The instance of the CritterGuard plugin.
+     */
     public GPSSubCommand(CritterGuard plugin) {
         this.plugin = plugin;
         this.config = plugin.getCGConfig();

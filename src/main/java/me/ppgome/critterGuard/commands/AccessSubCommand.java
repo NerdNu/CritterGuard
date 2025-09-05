@@ -7,7 +7,6 @@ import me.ppgome.critterGuard.utility.MessageUtils;
 import me.ppgome.critterGuard.database.MountAccess;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -16,10 +15,22 @@ import org.bukkit.entity.Player;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * This class represents the command used to give a player access to mounts.
+ */
 public class AccessSubCommand implements SubCommandHandler {
 
+    /**
+     * The instance of the plugin.
+     */
     private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the plugin's cache.
+     */
     private CritterCache critterCache;
 
     /**
@@ -88,6 +99,14 @@ public class AccessSubCommand implements SubCommandHandler {
         });
     }
 
+    /**
+     * Determines which message is sent to the player based on 2 criteria.
+     *
+     * @param player The player who the message is being sent to
+     * @param playerBeingAdded The player who is being added
+     * @param isAdd True if the player's access is being added, false if not
+     * @param isFullAccess True if the access being granted/removed is full, false if it's passenger
+     */
     public void sendClickMessage(Player player, OfflinePlayer playerBeingAdded, boolean isAdd, boolean isFullAccess) {
         String message;
         if(isAdd) {

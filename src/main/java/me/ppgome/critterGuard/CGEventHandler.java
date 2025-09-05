@@ -59,11 +59,11 @@ public class CGEventHandler implements Listener {
      */
     private CritterAccessHandler accessHandler;
     /**
-     * The instance of the CritterAccessHandler for the logic behind disguised saddles.
+     * The instance of the DisguiseSaddleHandler for the logic behind disguised saddles.
      */
     private DisguiseSaddleHandler disguiseSaddleHandler;
     /**
-     * The instance of the CritterAccessHandler for interacting directly with the LibsDisguises API.
+     * The instance of the LibsDisguiseProvider for interacting directly with the LibsDisguises API.
      */
     private LibsDisguiseProvider disguiseProvider;
     /**
@@ -95,7 +95,9 @@ public class CGEventHandler implements Listener {
         if(playerMeta == null) {
             critterCache.addPlayerMeta(new PlayerMeta(playerUuid, plugin));
         }
-        disguiseSaddleHandler.refreshSaddleDisguises();
+        if(disguiseSaddleHandler != null) {
+            disguiseSaddleHandler.refreshSaddleDisguises();
+        }
     }
 
     @EventHandler
@@ -160,7 +162,13 @@ public class CGEventHandler implements Listener {
                 }
                 // Player does not have access, prevent interaction
                 event.setCancelled(true);
-                player.sendMessage(config.PERMISSION_INTERACT);
+                // Let the player know who the owner is. Get name asynchronously as it's thread-blocking
+                accessHandler.getOwnerName(savedMount.getEntityOwnerUuid()).thenAccept(ownerName -> {
+                    Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(PlaceholderParser
+                            .of(config.PERMISSION_INTERACT)
+                            .player(ownerName)
+                            .parse()));
+                });
             }
             // Player clicking is trying to untame the entity
             if(critterCache.isAwaitingUntame(playerUuid)) {
@@ -297,7 +305,15 @@ public class CGEventHandler implements Listener {
             }
             // Player does not have access, prevent mounting
             event.setCancelled(true);
-            if(!disguiseProvider.isDisguised(mount)) passenger.sendMessage(config.PERMISSION_MOUNT);
+            if(!disguiseProvider.isDisguised(mount)) {
+                // Let the player know who the owner is. Get name asynchronously as it's thread-blocking
+                accessHandler.getOwnerName(savedMount.getEntityOwnerUuid()).thenAccept(ownerName -> {
+                    Bukkit.getScheduler().runTask(plugin, () -> player.sendMessage(PlaceholderParser
+                            .of(config.PERMISSION_MOUNT)
+                            .player(ownerName)
+                            .parse()));
+                });
+            }
             return;
         }
 

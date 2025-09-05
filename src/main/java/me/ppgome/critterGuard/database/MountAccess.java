@@ -3,29 +3,39 @@ package me.ppgome.critterGuard.database;
 import com.j256.ormlite.field.DatabaseField;
 
 /**
- * Represents access permissions for mounts in the MountGuard plugin.
+ * Represents access permissions for mounts in the plugin.
  * This class is used to store information about which players have access to which mounts,
  * and whether they have full access or not.
  */
 public class MountAccess {
 
-    // The unique identifier for each MountAccess record.
+    /**
+     * The unique identifier for each MountAccess record.
+     */
     @DatabaseField(generatedId = true)
     private Integer id;
 
-    // The UUID of the mount this access record pertains to.
+    /**
+     * The UUID of the mount this access record pertains to.
+     */
     @DatabaseField(canBeNull = false)
     private String mountUuid;
 
-    // The UUID of the player who has access to the mount.
+    /**
+     * The UUID of the player who has access to the mount.
+     */
     @DatabaseField(canBeNull = false)
     private String playerUuid;
 
-    // Indicates whether the player has full access to the mount.
+    /**
+     * Indicates whether the player has full access to the mount.
+     */
     @DatabaseField
     private boolean fullAccess;
 
-    // Indicates whether this MountAccess record is currently being added or removed.
+    /**
+     * Indicates whether this MountAccess record is currently being added or removed.
+     */
     private boolean beingAdded;
 
     //------------------------------------------------------------------------------------------------------------------

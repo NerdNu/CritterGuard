@@ -1,4 +1,4 @@
-# 🐺 CritterGuard 🐎
+# CritterGuard
 
 **A comprehensive pet protection plugin for Minecraft servers**
 
@@ -9,9 +9,9 @@ CritterGuard protects your beloved pets from death and theft by introducing an a
 
 ---
 
-## 🌟 Features
+## Features
 
-### 🔒 Entity Protection
+### Entity Protection
 CritterGuard protects these creatures from theft and harm:
 
 **Mountable Creatures:**
@@ -27,20 +27,20 @@ CritterGuard protects these creatures from theft and harm:
 - **Companions** (wolves, cats, parrots) can only be killed by their owners
 - **Mounts** can be killed by anything, but only while being ridden
 
-### 👥 Access Control System
+### Access Control System
 Control who can use your mounts with two permission levels:
 
-#### 🎫 Passenger Access
+#### Passenger Access
 - **Applies to:** Multi-seat mounts only (camels, happy ghasts)
 - **Allows:** Riding as a passenger when owner/full-access user is driving
 - **Cannot:** Take control or board without driver present
 
-#### 🎯 Full Access
+#### Full Access
 - **Applies to:** All mounts
 - **Allows:** Complete control of the mount
 - **Includes:** Access to mount storage (chests on donkeys/llamas)
 
-### 🔔 Notifications
+### Notifications
 Stay informed about your mounts! You'll be notified when someone with full access:
 - Mounts your creature
 - Dismounts your creature
@@ -48,13 +48,13 @@ Stay informed about your mounts! You'll be notified when someone with full acces
 
 *Toggle with: `/critter notifications [on/off]`*
 
-### 🔄 Smart Seat Swapping
+### Smart Seat Swapping
 For multi-seat mounts, when the driver dismounts:
 - Next person with full access automatically becomes driver
 - If no one else has full access, everyone is dismounted
 - Ensures uninterrupted journeys!
 
-### 🎭 Disguise Saddles *(LibsDisguises Required)*
+### Disguise Saddles *(LibsDisguises Required)*
 Transform your mount's appearance with special saddles!
 
 **Setup:** Add lore to any saddle starting with `Disguise: ` followed by the mob type
@@ -65,7 +65,7 @@ Transform your mount's appearance with special saddles!
 
 ---
 
-## 🎯 Taming Guide
+## Taming Guide
 
 | Creature | Taming Method |
 |----------|---------------|
@@ -76,9 +76,9 @@ Transform your mount's appearance with special saddles!
 
 ---
 
-## 🎮 Commands
+## Commands
 
-### 📋 Player Commands
+### Player Commands
 
 #### `/critter list [entityType] [player] [page]`
 View your tamed creatures with optional filters.
@@ -107,7 +107,7 @@ Toggle viewing the disguise of the mount you're controlling.
 >[!IMPORTANT]
 > With this toggled on, you won't be able to move your mount. Toggle it off to regain control.
 
-### 🛠️ Staff Commands
+### Staff Commands
 
 #### `/critter tame <player>`
 Tame any untamed creature to a specific player.
@@ -124,7 +124,7 @@ Reload the plugin configuration.
 
 ---
 
-## 🔧 Understanding Identifiers
+## Understanding Identifiers
 
 The `<identifier>` parameter accepts:
 1. **Creature's name** (from nametags)
@@ -138,7 +138,7 @@ The `<identifier>` parameter accepts:
 
 ---
 
-## 📋 Complete Command Reference
+## Complete Command Reference
 
 | Command                                                  | Description                                           | Permission                                                |
 |----------------------------------------------------------|-------------------------------------------------------|-----------------------------------------------------------|

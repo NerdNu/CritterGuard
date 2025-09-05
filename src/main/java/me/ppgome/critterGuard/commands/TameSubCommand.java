@@ -6,7 +6,6 @@ import me.ppgome.critterGuard.CritterGuard;
 import me.ppgome.critterGuard.utility.MessageUtils;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
@@ -14,12 +13,30 @@ import org.bukkit.command.CommandSender;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * This class represents the command used to tame an entity to a player.
+ */
 public class TameSubCommand implements SubCommandHandler {
 
+    /**
+     * The instance of the plugin.
+     */
     private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private CGConfig config;
+    /**
+     * The instance of the plugin's cache.
+     */
     private CritterCache critterCache;
 
+    /**
+     * Constructor for TameSubCommand.
+     * Initializes the command with the plugin instance.
+     *
+     * @param plugin The instance of the CritterGuard plugin.
+     */
     public TameSubCommand(CritterGuard plugin) {
         this.plugin = plugin;
         this.config = plugin.getCGConfig();
@@ -32,7 +49,7 @@ public class TameSubCommand implements SubCommandHandler {
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
             String targetPlayerName = args[0];
-            OfflinePlayer targetPlayer = Bukkit.getOfflinePlayerIfCached(targetPlayerName);
+            OfflinePlayer targetPlayer = Bukkit.getOfflinePlayer(targetPlayerName);
 
             if(targetPlayer.hasPlayedBefore()) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
@@ -61,6 +78,7 @@ public class TameSubCommand implements SubCommandHandler {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
+        if(args.length != 1) return List.of();
         return null; // Let Bukkit handle player name completions
     }
 

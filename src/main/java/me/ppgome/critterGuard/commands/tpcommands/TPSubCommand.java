@@ -5,16 +5,24 @@ import me.ppgome.critterGuard.commands.SubCommandHandler;
 import me.ppgome.critterGuard.utility.MessageUtils;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
+/**
+ * This class represents the command used to teleport to a player's critter.
+ */
 public class TPSubCommand implements SubCommandHandler {
 
+    /**
+     * The instance of the plugin.
+     */
     private final CritterGuard plugin;
+    /**
+     * The instance of the configuration class.
+     */
     private static CGConfig config;
 
     /**

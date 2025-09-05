@@ -1,5 +1,5 @@
 name: CritterGuard
-version: '1.0-SNAPSHOT'
+version: '1.0.0'
 main: me.ppgome.critterGuard.CritterGuard
 api-version: '1.21.6'
 prefix: CritterGuard
@@ -24,7 +24,7 @@ permissions:
     default: notop
   critterguard.notifications:
     default: notop
-  critterguard.viewdisguise:
+  critterguard.showdisguise:
     default: notop
   critterguard.tame:
     default: op
