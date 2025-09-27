@@ -8,9 +8,11 @@ import me.ppgome.critterGuard.utility.CritterAccessHandler;
 import me.ppgome.critterGuard.utility.CritterTamingHandler;
 import me.ppgome.critterGuard.utility.MountSeatHandler;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,7 +21,11 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
+import org.bukkit.event.world.EntitiesLoadEvent;
+import org.bukkit.event.world.EntitiesUnloadEvent;
 
+import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -137,6 +143,12 @@ public class CGEventHandler implements Listener {
         UUID entityUuid = entity.getUniqueId();
         SavedMount savedMount = critterCache.getSavedMount(entityUuid);
 
+        if(critterCache.isAwaitingInfo(playerUuid)) {
+            interactInfo(entity, player);
+            event.setCancelled(true);
+            return;
+        }
+
         if (savedMount == null || savedMount.isOwner(playerUuid)) {
             // Not a saved mount, player is the owner, pending access request
             if(critterCache.isAwaitingAccess(playerUuid)) {
@@ -149,6 +161,7 @@ public class CGEventHandler implements Listener {
                 event.setCancelled(true);
             } else if(critterCache.isAwaitingUntame(playerUuid)) {
                 tamingHandler.untame(playerUuid, player, savedMount, entityUuid, entity);
+                clickDing(player, entity);
                 event.setCancelled(true);
             }
         } else {
@@ -178,6 +191,29 @@ public class CGEventHandler implements Listener {
         }
     }
 
+    private void interactInfo(Entity entity, Player player) {
+        Tameable tameable = (Tameable) entity;
+        if(!tameable.isTamed()) return;
+        Component message = Component.text(tameable.getOwner().getName(), NamedTextColor.YELLOW)
+                .append(Component.text(" Owns this critter!", NamedTextColor.GREEN));
+        if(entity instanceof AbstractHorse abstractHorse) {
+            DecimalFormat df = new DecimalFormat("#.###");
+            df.setRoundingMode(RoundingMode.UP);
+            message = message.appendNewline().append(Component.text("Speed: ", NamedTextColor.RED))
+                    .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.MOVEMENT_SPEED).getValue()),
+                            NamedTextColor.YELLOW)).appendNewline()
+                    .append(Component.text("Jump: ", NamedTextColor.BLUE))
+                    .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.JUMP_STRENGTH).getValue()),
+                            NamedTextColor.YELLOW)).appendNewline()
+                    .append(Component.text("Health: ", NamedTextColor.GREEN))
+                    .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.MAX_HEALTH).getValue()),
+                            NamedTextColor.YELLOW)).appendNewline();
+        }
+        player.sendMessage(message);
+        critterCache.removeAwaitingInfo(player.getUniqueId());
+        clickDing(player, entity);
+    }
+
     /**
      * Handles the logic required for players who are clicking on the mount to modify the access of another player.
      *
@@ -196,6 +232,7 @@ public class CGEventHandler implements Listener {
         } else {
             accessHandler.handlePassengerAccess(player, entity, savedMount, mountAccess, beingAddedUuid, entityUuid);
         }
+        clickDing(player, entity);
     }
 
     /**
@@ -218,6 +255,11 @@ public class CGEventHandler implements Listener {
                         .parse());
             }
         }));
+        clickDing(player, entity);
+    }
+
+    private void clickDing(Player player, Entity entity) {
+        player.playSound(entity, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, SoundCategory.MASTER, 0.5f, 1);
     }
 
     @EventHandler
@@ -417,14 +459,7 @@ public class CGEventHandler implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        Player player = event.getPlayer();
-        Entity vehicle = player.getVehicle();
-        if(vehicle != null) {
-            SavedMount savedMount = critterCache.getSavedMount(vehicle.getUniqueId());
-            if(savedMount != null && savedMount.isOwner(player.getUniqueId())) {
-                vehicle.eject();
-            }
-        }
+        plugin.processPlayerLogout(event.getPlayer());
     }
 
     @EventHandler
@@ -479,6 +514,30 @@ public class CGEventHandler implements Listener {
                 // If nobody else will be on this mount after this dismount, undisguise it
                 if(entity.getPassengers().size() <= 1) {
                     disguiseProvider.removeDisguiseForAll(entity);
+                }
+            }
+        }
+    }
+
+    @EventHandler
+    public void onEntitiesUnload(EntitiesUnloadEvent event) {
+        World world = event.getWorld();
+        for(Entity entity : event.getEntities()) {
+            if(tamingHandler.canHandleTaming(entity)) {
+                UUID entityUuid = entity.getUniqueId();
+                SavedMount savedMount = critterCache.getSavedMount(entityUuid);
+                if(savedMount != null) {
+                    Location location = entity.getLocation();
+                    savedMount.setLastLocation(new Location(world, location.x(), location.y(), location.z()));
+                    savedMountTable.save(savedMount);
+                } else if(critterCache.isSavedPet(entityUuid) && entity instanceof Tameable tameable && tameable.isTamed()) {
+                    for(SavedAnimal cachedAnimal : critterCache.getPlayerMeta(tameable.getOwnerUniqueId()).getOwnedList()) {
+                        if (cachedAnimal.getEntityUuid().equals(entityUuid)) {
+                            Location location = entity.getLocation();
+                            cachedAnimal.setLastLocation(new Location(world, location.x(), location.y(), location.z()));
+                            savedPetTable.save((SavedPet) cachedAnimal);
+                        }
+                    }
                 }
             }
         }

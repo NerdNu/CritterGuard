@@ -1,6 +1,8 @@
 package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.field.DatabaseField;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
 
 import java.util.UUID;
 
@@ -39,6 +41,30 @@ public class SavedAnimal {
      */
     @DatabaseField
     String color;
+
+    /**
+     * The X value of the critter's last known location.
+     */
+    @DatabaseField
+    double lastSeenX;
+
+    /**
+     * The Y value of the critter's last known location.
+     */
+    @DatabaseField
+    double lastSeenY;
+
+    /**
+     * The Z value of the critter's last known location.
+     */
+    @DatabaseField
+    double lastSeenZ;
+
+    /**
+     * The last world the critter was known to be in.
+     */
+    @DatabaseField
+    String lastSeenWorld;
 
     /**
      * The numeric index of the entity, used for sorting or ordering purposes.
@@ -159,6 +185,26 @@ public class SavedAnimal {
      */
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    /**
+     * Sets the last known location of the critter.
+     *
+     * @param location The last known location of the critter
+     */
+    public void setLastLocation(Location location) {
+        this.lastSeenX = location.x();
+        this.lastSeenY = location.y();
+        this.lastSeenZ = location.z();
+        this.lastSeenWorld = location.getWorld().getName();
+    }
+
+    /**
+     * Returns the last known location of the critter.
+     * @return the last known location of the critter
+     */
+    public Location getLastLocation() {
+        return new Location(Bukkit.getWorld(this.lastSeenWorld), this.lastSeenX, this.lastSeenY, this.lastSeenZ);
     }
 
 }

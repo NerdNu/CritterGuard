@@ -176,7 +176,7 @@ messages:
     # When the player exists and has critters but the provided identifier doesn't match any of their critters
     # PLACEHOLDER: <player> is replaced with the username provided by the player
     # PLACEHOLDER: <identifier> is replaced with the identifier provided by the player
-    noMatch: "<red>No critter found matching <yellow><identifier><>/yellow> for player <yellow><player></yellow>.</red>"
+    noMatch: "<red>No critter found matching <yellow><identifier></yellow> for player <yellow><player></yellow>.</red>"
 
   clickActions:
 
@@ -208,6 +208,10 @@ messages:
     # When a player is prompted to click a critter to untame it
     # PLACEHOLDER: <button> is replaced with the name of the button they need to press
     toUntame: "<green>Use <yellow><button></yellow> on a critter to untame it.</green>"
+
+    # When a player is prompted to click a critter to fetch its info
+    # PLACEHOLDER: <button> is replaced with the name of the button they need to press
+    toGetInfo: "<green>Use <yellow><button></yellow> on a critter to learn more about it.</green>"
 
     # When a player takes too long to respond to a click action prompt
     timeout: "<red>Request timed out. Please try again.</red>"

@@ -1,16 +1,20 @@
 package me.ppgome.critterGuard.commands;
 
 import io.papermc.paper.entity.LookAnchor;
+import io.papermc.paper.math.Position;
 import me.ppgome.critterGuard.*;
+import me.ppgome.critterGuard.database.SavedAnimal;
 import me.ppgome.critterGuard.utility.MessageUtils;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Entity;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * This class represents the command used to give the player the coordinates of a specific one of their critters.
@@ -55,13 +59,16 @@ public class GPSSubCommand implements SubCommandHandler {
         }
 
         // Search for the critter by name, UUID, or index
-        Entity matchedEntity = CommandUtils.searchByIdentifier(critterIdentifier, playerMeta, plugin);
+        SavedAnimal matchedSavedAnimal = CommandUtils.searchByIdentifier(critterIdentifier, playerMeta);
+        Entity matchedEntity = Bukkit.getEntity(matchedSavedAnimal.getEntityUuid());
 
         // If match found, notify the player
         if(matchedEntity != null) {
-            Location location = matchedEntity.getLocation();
-            player.sendMessage(MessageUtils.locationBuilder(location, NamedTextColor.GREEN));
+            player.sendMessage(MessageUtils.locationBuilder(matchedEntity.getLocation(), NamedTextColor.GREEN));
             player.lookAt(matchedEntity, LookAnchor.EYES, LookAnchor.FEET);
+        } else if(matchedSavedAnimal != null) {
+            player.sendMessage(MessageUtils.locationBuilder(matchedSavedAnimal.getLastLocation(), NamedTextColor.GREEN));
+            player.lookAt(Position.block(matchedSavedAnimal.getLastLocation()), LookAnchor.EYES);
         } else {
             player.sendMessage(PlaceholderParser.of(config.GPS_NO_MATCH).identifier(critterIdentifier).parse());
         }

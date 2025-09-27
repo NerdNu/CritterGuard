@@ -2,6 +2,7 @@ package me.ppgome.critterGuard;
 
 import me.ppgome.critterGuard.database.MountAccess;
 import me.ppgome.critterGuard.database.SavedMount;
+import me.ppgome.critterGuard.database.SavedPet;
 import org.bukkit.OfflinePlayer;
 
 import java.util.*;
@@ -22,6 +23,12 @@ public class CritterCache {
      * This cache is used to store all SavedMounts for quick retrieval.
      */
     private HashMap<UUID, SavedMount> savedMountsCache = new HashMap<>();
+
+    /**
+     * An in-memory cache of SavedPet UUIDs.
+     * This cache is used to store all SavedPet UUIDs for quick checking.
+     */
+    private Set<UUID> savedPetsCache = new HashSet<>();
 
     /**s
      * An in-memory cache of PlayerMeta objects.
@@ -46,6 +53,12 @@ public class CritterCache {
      * This cache is used to store player UUIDs that are waiting for untame clicks.
      */
     private Set<UUID> untameClickCache = new HashSet<>();
+
+    /**
+     * An in-memory cache of awaiting clicks for info requests.
+     * This cache is used to store player UUIDs that are waiting for info clicks.
+     */
+    private Set<UUID> infoClickCache = new HashSet<>();
 
     //------------------------------------------------------------------------------------------------------------------
 
@@ -87,6 +100,36 @@ public class CritterCache {
      */
     public void removeSavedMount(SavedMount savedMount) {
         savedMountsCache.remove(savedMount.getEntityUuid());
+    }
+
+    // -------- Saved Pet Cache
+
+    /**
+     * Adds a new saved pet's UUID to the cache.
+     *
+     * @param savedPet The pet's UUID being added to the cache
+     */
+    public void addSavedPet(SavedPet savedPet) {
+        savedPetsCache.add(savedPet.getEntityUuid());
+    }
+
+    /**
+     * Checks if an entity's UUID exists in the saved pet cache.
+     *
+     * @param uuid the UUID being checked
+     * @return true if it does, false if not
+     */
+    public boolean isSavedPet(UUID uuid) {
+        return savedPetsCache.contains(uuid);
+    }
+
+    /**
+     * Removes a saved pet's UUID from the cache.
+     *
+     * @param savedPet The saved pet's UUID to be removed
+     */
+    public void removeSavedPet(SavedPet savedPet) {
+        savedPetsCache.remove(savedPet.getEntityUuid());
     }
 
     // -------- Player Meta Cache
@@ -233,6 +276,36 @@ public class CritterCache {
      */
     public void removeAwaitingUntame(UUID playerUuid) {
         untameClickCache.remove(playerUuid);
+    }
+
+    // -------- Info Click Cache
+
+    /**
+     * Adds a player who is going to be clicking an entity to get its info.
+     *
+     * @param playerUuid The UUID of the player who will be clicking
+     */
+    public void addAwaitingInfo(UUID playerUuid) {
+        infoClickCache.add(playerUuid);
+    }
+
+    /**
+     * Checks if there's a record of the specified player who is in the process of getting a critter's info.
+     *
+     * @param playerUuid The UUID of the player being checked for
+     * @return True if they are in the cache, false if not.
+     */
+    public boolean isAwaitingInfo(UUID playerUuid) {
+        return infoClickCache.contains(playerUuid);
+    }
+
+    /**
+     * Removes a record from the cache that matches the specified UUID.
+     *
+     * @param playerUuid the UUID of the player whose record is being removed from the cache
+     */
+    public void removeAwaitingInfo(UUID playerUuid) {
+        infoClickCache.remove(playerUuid);
     }
 
 }
