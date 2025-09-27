@@ -1,9 +1,13 @@
 package me.ppgome.critterGuard.database;
 
 import com.j256.ormlite.dao.Dao;
+import com.j256.ormlite.stmt.QueryBuilder;
 import me.ppgome.critterGuard.CritterGuard;
+import org.bukkit.entity.Entity;
 
+import java.sql.SQLException;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -62,6 +66,25 @@ public class SavedPetTable {
                 return savedPetDao.queryForAll();
             } catch (Exception e) {
                 plugin.logError("Failed to fetch all saved pets\n" + e.getMessage());
+                return null;
+            }
+        });
+    }
+
+    public CompletableFuture<UUID> getOwner(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                QueryBuilder<SavedPet, String> queryBuilder = savedPetDao.queryBuilder();
+                queryBuilder.selectColumns("entityOwnerUuid");
+                queryBuilder.where().eq("entityUuid", uuid);
+
+                SavedPet savedPet = savedPetDao.queryForFirst(queryBuilder.prepare());
+                if(savedPet != null) {
+                    return savedPet.getEntityOwnerUuid();
+                }
+                return null;
+            } catch (Exception e) {
+                plugin.logError("Failed to fetch owner of saved pet " + uuid +"\n" + e.getMessage());
                 return null;
             }
         });

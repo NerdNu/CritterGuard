@@ -10,6 +10,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
@@ -213,15 +214,17 @@ public class ListSubCommand implements SubCommandHandler {
                 .append(Component.text(" ====----", NamedTextColor.GRAY))
                 .appendNewline();
         for (SavedAnimal animal : animalList) {
-            if(Bukkit.getEntity(animal.getEntityUuid()) == null) {
-                tamingHandler.unregisterSavedMount(animal);
-                continue;
-            }
             String Uuid = animal.getEntityUuid().toString().substring(0, 8);
             String name = animal.getEntityName() != null ? animal.getEntityName() : "No name";
             String type = animal.getEntityType();
             String color = animal.getColor() != null ? animal.getColor() : "N/A";
-            Location location = Bukkit.getEntity(animal.getEntityUuid()).getLocation();
+            Location location;
+            Entity entity = Bukkit.getEntity(animal.getEntityUuid());
+            if(entity != null) {
+                location = entity.getLocation();
+            } else {
+                location = animal.getLastLocation();
+            }
             message = message.appendNewline()
                     .append(Component.text("[" + animal.getIndex() + "] ", NamedTextColor.GOLD))
                     .append(Component.text(Uuid + "... ", NamedTextColor.GRAY))

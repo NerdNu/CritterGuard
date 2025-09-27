@@ -216,6 +216,7 @@ public final class CritterGuard extends JavaPlugin {
                         playerMeta = registerNewPlayer(savedPet.getEntityOwnerUuid());
                         savedPet.setIndex(playerMeta.getOwnedList().size() + 1);
                         playerMeta.addOwnedAnimal(savedPet);
+                        critterCache.addSavedPet(savedPet);
                     }
                     logInfo("Loaded " + savedPets.size() + " saved pets from the database.");
                 }

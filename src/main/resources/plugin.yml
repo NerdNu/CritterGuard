@@ -26,6 +26,8 @@ permissions:
     default: notop
   critterguard.showdisguise:
     default: notop
+  critterguard.info:
+    default: notop
   critterguard.tame:
     default: op
   critterguard.untame:

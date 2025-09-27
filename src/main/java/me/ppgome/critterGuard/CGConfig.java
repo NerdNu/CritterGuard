@@ -86,6 +86,7 @@ public class CGConfig {
     public String CLICK_REVOKE_PASSENGER_ACCESS;
     public String CLICK_TAME;
     public String CLICK_UNTAME;
+    public String CLICK_INFO;
     public Component CLICK_TIMEOUT;
 
     //------------------------------------------------------------------------------------------------------------------
@@ -251,6 +252,8 @@ public class CGConfig {
                 + " " + config.getString(clickActionsPath + "toTameToOthers", errorMessage);
         CLICK_UNTAME = PREFIX
                 + " " + config.getString(clickActionsPath + "toUntame", errorMessage);
+        CLICK_INFO = PREFIX
+                + " " + config.getString(clickActionsPath + "toGetInfo", errorMessage);
         CLICK_TIMEOUT = mm.deserialize(PREFIX
                 + " " + config.getString(clickActionsPath + "timeout", errorMessage));
     }

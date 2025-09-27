@@ -3,11 +3,15 @@ package me.ppgome.critterGuard.commands.tpcommands;
 import me.ppgome.critterGuard.CritterGuard;
 import me.ppgome.critterGuard.PlayerMeta;
 import me.ppgome.critterGuard.commands.CommandUtils;
+import me.ppgome.critterGuard.database.SavedAnimal;
 import me.ppgome.critterGuard.utility.PlaceholderParser;
 import org.bukkit.Bukkit;
+import org.bukkit.Chunk;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+
+import java.util.UUID;
 
 /**
  * A utility class containing static methods and a functional interface for the teleportation commands.
@@ -41,14 +45,38 @@ public class TeleportUtils {
             }
 
             Bukkit.getScheduler().runTask(plugin, () -> {
-                Entity critterEntity = CommandUtils.searchByIdentifier(critterIdentifier, playerMeta, plugin);
+                SavedAnimal critter = CommandUtils.searchByIdentifier(critterIdentifier, playerMeta);
+                Entity critterEntity = Bukkit.getEntity(critter.getEntityUuid());
 
-                if (critterEntity == null) {
+                if (critter == null) {
                     sender.sendMessage(PlaceholderParser
                             .of(plugin.getCGConfig().TELEPORT_NO_MATCH)
                             .player(targetPlayer.getName())
                             .identifier(critterIdentifier)
                             .parse());
+                    return;
+                } else if(critterEntity == null) {
+                    System.out.println("We get here 1");
+                    // Load the chunk the plugin last saw the entity in and try to grab it that way
+                    Chunk lastChunk = critter.getLastLocation().getChunk();
+                    System.out.println("We get here 2");
+                    lastChunk.load();
+                    System.out.println("We get here 3");
+                    Bukkit.getScheduler().runTask(plugin, () -> {
+                        System.out.println("We get here 4");
+                        Entity chunkEntity = Bukkit.getEntity(critter.getEntityUuid());
+                        if(chunkEntity != null) {
+                            System.out.println("We get here 5");
+                            action.execute(sender, chunkEntity, targetPlayer.getName(), plugin);
+                        } else {
+                            System.out.println("We get here 6");
+                            sender.sendMessage(PlaceholderParser
+                                    .of(plugin.getCGConfig().TELEPORT_NO_MATCH)
+                                    .player(targetPlayer.getName())
+                                    .identifier(critterIdentifier)
+                                    .parse());
+                        }
+                    });
                     return;
                 }
 

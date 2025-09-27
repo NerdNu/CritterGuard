@@ -100,19 +100,23 @@ public class CritterTamingHandler {
             case Horse horse:
                 newMount = new SavedMount(entityId, customName, tamerId, tamerName,
                         entityType, horse.getColor().toString(), horse.getStyle().toString());
+                newMount.setLastLocation(entity.getLocation());
                 break;
 
             case Llama llama:
                 newMount = new SavedMount(entityId, customName, tamerId, tamerName,
                         entityType, llama.getColor().toString());
+                newMount.setLastLocation(entity.getLocation());
                 break;
 
             case AbstractHorse ignored:
                 newMount = new SavedMount(entityId, customName, tamerId, tamerName, entityType);
+                newMount.setLastLocation(entity.getLocation());
                 break;
 
             case HappyGhast ignored:
                 newMount = new SavedMount(entityId, customName, tamerId, tamerName, entityType);
+                newMount.setLastLocation(entity.getLocation());
                 break;
 
             default:
@@ -146,14 +150,17 @@ public class CritterTamingHandler {
             case Wolf wolf:
                 savedPet = new SavedPet(entityId, customName, tamerId, tamerName, entityType,
                         wolf.getVariant().getKey().getKey(), wolf.getSoundVariant().getKey().getKey());
+                completePetRegistration(savedPet, entity);
                 break;
             case Cat cat:
                 savedPet = new SavedPet(entityId, customName, tamerId, tamerName,
                         entityType, cat.getCatType().getKey().getKey());
+                completePetRegistration(savedPet, entity);
                 break;
             case Parrot parrot:
                 savedPet = new SavedPet(entityId, customName, tamerId, tamerName,
                         entityType, parrot.getVariant().toString());
+                completePetRegistration(savedPet, entity);
                 break;
             default:
                 return; // Unsupported pet type
@@ -163,6 +170,11 @@ public class CritterTamingHandler {
         if(player.isOnline()) {
             Bukkit.getPlayer(player.getUniqueId()).sendMessage(config.TAMING_TO_THEMSELVES);
         }
+    }
+
+    public void completePetRegistration(SavedPet savedPet, Entity entity) {
+        savedPet.setLastLocation(entity.getLocation());
+        critterCache.addSavedPet(savedPet);
     }
 
     /**

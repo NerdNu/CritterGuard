@@ -158,7 +158,8 @@ public class DisguiseSaddleHandler {
      */
     public void refreshSaddleDisguises() {
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (player.getVehicle() instanceof Entity entity) {
+            Entity entity = player.getVehicle();
+            if (entity instanceof AbstractHorse || entity instanceof HappyGhast) {
                 String disguiseType = getDisguiseFromSaddle(entity);
                 if (disguiseType != null) {
                     applySaddleDisguise(entity, player, disguiseType);
