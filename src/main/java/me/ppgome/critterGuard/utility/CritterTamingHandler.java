@@ -6,8 +6,12 @@ import me.ppgome.critterGuard.CritterGuard;
 import me.ppgome.critterGuard.PlayerMeta;
 import me.ppgome.critterGuard.database.*;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.AbstractHorseInventory;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.UUID;
 
@@ -287,6 +291,7 @@ public class CritterTamingHandler {
         if(savedMount != null) {
             if((canUntameOwn && savedMount.isOwner(playerUuid)) || canUntameOthers) {
                 if(entity instanceof Tameable tameable) tameable.setTamed(false);
+                removeSaddle(entity);
                 unregisterSavedMount(savedMount);
                 player.sendMessage(config.UNTAME);
 
@@ -308,6 +313,24 @@ public class CritterTamingHandler {
             }));
         }
         critterCache.removeAwaitingUntame(playerUuid);
+    }
+
+    /**
+     * Removes the saddle of a mount on untame so that it can be tamed again.
+     * Horses with saddles, while untamed, can't be retamed through vanilla methods.
+     *
+     * @param entity the entity being untamed and having its saddle taken away
+     */
+    private void removeSaddle(Entity entity) {
+        if(entity instanceof AbstractHorse abstractHorse) {
+            AbstractHorseInventory inventory = abstractHorse.getInventory();
+            ItemStack saddle = inventory.getSaddle();
+            if(saddle != null) {
+                inventory.setSaddle(new ItemStack(Material.AIR));
+                Location location = entity.getLocation();
+                location.getWorld().dropItem(location.add(0.0, 2.0, 0.0), saddle);
+            }
+        }
     }
 
 }
