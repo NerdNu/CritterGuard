@@ -191,27 +191,56 @@ public class CGEventHandler implements Listener {
         }
     }
 
+    /**
+     * Performs the ownership checks on the entity that's being queried by "/cg info".
+     *
+     * @param entity the entity being checked
+     * @param player the player checking the entity
+     */
     private void interactInfo(Entity entity, Player player) {
-        Tameable tameable = (Tameable) entity;
-        if(!tameable.isTamed()) return;
-        Component message = Component.text(tameable.getOwner().getName(), NamedTextColor.YELLOW)
-                .append(Component.text(" Owns this critter!", NamedTextColor.GREEN));
-        if(entity instanceof AbstractHorse abstractHorse) {
-            DecimalFormat df = new DecimalFormat("#.###");
-            df.setRoundingMode(RoundingMode.UP);
-            message = message.appendNewline().append(Component.text("Speed: ", NamedTextColor.RED))
-                    .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.MOVEMENT_SPEED).getValue()),
-                            NamedTextColor.YELLOW)).appendNewline()
-                    .append(Component.text("Jump: ", NamedTextColor.BLUE))
-                    .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.JUMP_STRENGTH).getValue()),
-                            NamedTextColor.YELLOW)).appendNewline()
-                    .append(Component.text("Health: ", NamedTextColor.GREEN))
-                    .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.MAX_HEALTH).getValue()),
-                            NamedTextColor.YELLOW)).appendNewline();
-        }
-        player.sendMessage(message);
-        critterCache.removeAwaitingInfo(player.getUniqueId());
-        clickDing(player, entity);
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            String ownerName;
+            if(entity instanceof Tameable tameable && tameable.isTamed()) {
+                ownerName = tameable.getOwner().getName();
+                sendInfo(entity, player, ownerName);
+            } else {
+                SavedMount mount = critterCache.getSavedMount(entity.getUniqueId());
+                if(mount != null) {
+                    ownerName = Bukkit.getOfflinePlayer(mount.getEntityOwnerUuid()).getName();
+                    sendInfo(entity, player, ownerName);
+                }
+            }
+        });
+    }
+
+    /**
+     * Puts together the message to send the player who's finishing up a "/cg info" query.
+     *
+     * @param entity the entity being checked
+     * @param player the player checking the entity
+     * @param ownerName the name of the owner of the entity
+     */
+    private void sendInfo(Entity entity, Player player, String ownerName) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            Component message = Component.text(ownerName, NamedTextColor.YELLOW)
+                    .append(Component.text(" Owns this critter!", NamedTextColor.GREEN));
+            if(entity instanceof AbstractHorse abstractHorse) {
+                DecimalFormat df = new DecimalFormat("#.###");
+                df.setRoundingMode(RoundingMode.UP);
+                message = message.appendNewline().append(Component.text("Speed: ", NamedTextColor.RED))
+                        .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.MOVEMENT_SPEED).getValue()),
+                                NamedTextColor.YELLOW)).appendNewline()
+                        .append(Component.text("Jump: ", NamedTextColor.BLUE))
+                        .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.JUMP_STRENGTH).getValue()),
+                                NamedTextColor.YELLOW)).appendNewline()
+                        .append(Component.text("Health: ", NamedTextColor.GREEN))
+                        .append(Component.text(df.format(abstractHorse.getAttribute(Attribute.MAX_HEALTH).getValue()),
+                                NamedTextColor.YELLOW)).appendNewline();
+            }
+            player.sendMessage(message);
+            critterCache.removeAwaitingInfo(player.getUniqueId());
+            clickDing(player, entity);
+        });
     }
 
     /**
