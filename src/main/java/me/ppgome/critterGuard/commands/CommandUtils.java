@@ -30,7 +30,12 @@ public class CommandUtils {
         // Check if the identifier is numeric (index-based)
         if (critterIdentifier.matches("\\d+")) {
             // If the identifier is numeric, check if it matches the index
-            int index = Integer.parseInt(critterIdentifier) - 1; // Convert to zero-based index
+            int index;
+            try {
+                index = Integer.parseInt(critterIdentifier) - 1; // Convert to zero-based index
+            } catch (NumberFormatException e) {
+                return null; // String is not a parsable integer (greater than Integer.MAX_VALUE?)
+            }
             List<SavedAnimal> ownedList = playerMeta.getOwnedList();
             if (index >= 0 && index < ownedList.size()) {
                 return ownedList.get(index);
