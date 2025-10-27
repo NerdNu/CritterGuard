@@ -183,13 +183,13 @@ public final class CritterGuard extends JavaPlugin {
         CompletableFuture<List<SavedPet>> savedPetsFuture = savedPetTable.getAllSavedPets();
 
         CompletableFuture.allOf(savedMountsFuture, mountAccessFuture, savedPetsFuture).thenRun(() -> {
+
+            PlayerMeta playerMeta;
+
             try {
                 List<SavedMount> savedMounts = savedMountsFuture.get();
-                List<MountAccess> mountAccesses = mountAccessFuture.get();
-                List<SavedPet> savedPets = savedPetsFuture.get();
 
                 // Initialize the in-memory cache for saved mounts
-                PlayerMeta playerMeta;
                 if(savedMounts != null) {
                     for(SavedMount savedMount : savedMounts) {
                         critterCache.addSavedMount(savedMount);
@@ -199,16 +199,32 @@ public final class CritterGuard extends JavaPlugin {
                     }
                     logInfo("Loaded " + savedMounts.size() + " saved mounts from the database.");
                 }
+            } catch(Exception e) {
+                logError("Failed to load saved mount data: " + e.getMessage());
+            }
+
+            try {
+                List<MountAccess> mountAccesses = mountAccessFuture.get();
 
                 // Initialize the in-memory cache for mount accesses
                 if(mountAccesses != null) {
                     for(MountAccess mountAccess : mountAccesses) {
                         registerNewPlayer(UUID.fromString(mountAccess.getPlayerUuid())).addMountAccess(mountAccess);
-                        critterCache.getSavedMount(UUID.fromString(mountAccess.getMountUuid()))
-                                .addAccess(UUID.fromString(mountAccess.getPlayerUuid()), mountAccess);
+                        SavedMount savedMount = critterCache.getSavedMount(UUID.fromString(mountAccess.getMountUuid()));
+                        if(savedMount != null) {
+                            savedMount.addAccess(UUID.fromString(mountAccess.getPlayerUuid()), mountAccess);
+                        } else {
+                            mountAccessTable.delete(mountAccess);
+                        }
                     }
-                    logInfo("Loaded " + mountAccesses.size() + " saved mounts from the database.");
+                    logInfo("Loaded " + mountAccesses.size() + " saved mount accesses from the database.");
                 }
+            } catch(Exception e) {
+                logError("Failed to load mount access data: " + e.getMessage());
+            }
+
+            try {
+                List<SavedPet> savedPets = savedPetsFuture.get();
 
                 // Initialize the in-memory cache for saved pets
                 if(savedPets != null) {
@@ -220,11 +236,9 @@ public final class CritterGuard extends JavaPlugin {
                     }
                     logInfo("Loaded " + savedPets.size() + " saved pets from the database.");
                 }
-
-            } catch (Exception e) {
-                logError("Failed to load database data: " + e.getMessage());
+            } catch(Exception e) {
+                logError("Failed to load saved pet data: " + e.getMessage());
             }
-
         });
     }
 
@@ -283,6 +297,15 @@ public final class CritterGuard extends JavaPlugin {
      */
     public CGConfig getCGConfig() {
         return config;
+    }
+
+    /**
+     * Returns the root command for the CritterGuard plugin. This contains all the subcommands.
+     *
+     * @return the root command object
+     */
+    public CritterCommand getCritterCommand() {
+        return critterCommand;
     }
 
     /**

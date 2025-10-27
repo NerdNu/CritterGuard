@@ -78,8 +78,12 @@ public class InfoSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(plugin.getCGConfig().PREFIX +
-                " <red>Usage: /critter info");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter info</red>";
     }
 
     @Override

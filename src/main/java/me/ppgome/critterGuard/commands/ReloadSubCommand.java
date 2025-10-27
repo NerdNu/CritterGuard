@@ -55,7 +55,12 @@ public class ReloadSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(config.PREFIX + " <red>Usage: /critter reload</red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter reload</red>";
     }
 
     @Override

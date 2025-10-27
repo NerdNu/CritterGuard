@@ -21,7 +21,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.event.world.EntitiesUnloadEvent;
 
 import java.math.RoundingMode;
@@ -208,6 +207,8 @@ public class CGEventHandler implements Listener {
                 if(mount != null) {
                     ownerName = Bukkit.getOfflinePlayer(mount.getEntityOwnerUuid()).getName();
                     sendInfo(entity, player, ownerName);
+                } else {
+                    sendInfo(entity, player, "Nobody");
                 }
             }
         });
@@ -223,7 +224,7 @@ public class CGEventHandler implements Listener {
     private void sendInfo(Entity entity, Player player, String ownerName) {
         Bukkit.getScheduler().runTask(plugin, () -> {
             Component message = Component.text(ownerName, NamedTextColor.YELLOW)
-                    .append(Component.text(" Owns this critter!", NamedTextColor.GREEN));
+                    .append(Component.text(" owns this critter!", NamedTextColor.GREEN));
             if(entity instanceof AbstractHorse abstractHorse) {
                 DecimalFormat df = new DecimalFormat("#.###");
                 df.setRoundingMode(RoundingMode.UP);
@@ -299,7 +300,7 @@ public class CGEventHandler implements Listener {
         if(event.getName() == null) return; // No name provided
 
         if(playerMeta != null) {
-            SavedAnimal savedAnimal = playerMeta.getOwnedMountByUuid(entityUuid);
+            SavedAnimal savedAnimal = playerMeta.getOwnedAnimalByUuid(entityUuid);
             if(savedAnimal != null) {
                 String newName = PlainTextComponentSerializer.plainText().serialize(event.getName());
                 SavedMount savedMount = critterCache.getSavedMount(entityUuid);
@@ -322,6 +323,20 @@ public class CGEventHandler implements Listener {
     @EventHandler
     public void onPlayerLeashCritter(PlayerLeashEntityEvent event) {
         Entity entity = event.getEntity();
+        UUID entityUuid = entity.getUniqueId();
+        UUID playerUuid = event.getPlayer().getUniqueId();
+        SavedMount savedMount = critterCache.getSavedMount(entityUuid);
+
+        if(savedMount != null) {
+            if(savedMount.getEntityOwnerUuid().equals(playerUuid) || savedMount.hasFullAccess(playerUuid)) return;
+            event.setCancelled(true);
+            return;
+        } else if(critterCache.isSavedPet(entityUuid)) {
+            if(critterCache.getPlayerMeta(playerUuid).getOwnedAnimalByUuid(entityUuid) != null) return;
+            event.setCancelled(true);
+            return;
+        }
+
         if(!(entity instanceof Llama)) return; // Only handle llamas
         Player player = event.getPlayer();
         tamingHandler.handleTaming(player, entity);
@@ -496,8 +511,15 @@ public class CGEventHandler implements Listener {
         Entity entity = event.getEntity();
         if(tamingHandler.isMountableEntity(entity)) {
             Vehicle mount = (Vehicle) entity;
-            if(mount.getPassengers().isEmpty() && critterCache.getSavedMount(entity.getUniqueId()) != null) {
-                event.setCancelled(true);
+            if(critterCache.getSavedMount(entity.getUniqueId()) != null) {
+                if(mount.getPassengers().isEmpty()) {
+                    event.setCancelled(true);
+                } else {
+                    Entity causingEntity = event.getDamageSource().getCausingEntity();
+                    if(causingEntity != null && causingEntity instanceof Player) {
+                        event.setCancelled(true);
+                    }
+                }
             }
 
         } else if(tamingHandler.isPetEntity(entity)) {

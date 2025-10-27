@@ -3,6 +3,7 @@ package me.ppgome.critterGuard.database;
 import com.j256.ormlite.dao.Dao;
 import me.ppgome.critterGuard.CritterGuard;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -47,6 +48,9 @@ public class SavedMountTable {
                 plugin.logError("Failed to fetch all saved mounts\n" + e.getMessage());
                 return null;
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to fetch all saved mounts\n" + e.getMessage());
+            return new ArrayList<>();
         });
     }
 
@@ -63,6 +67,9 @@ public class SavedMountTable {
                 plugin.getLogger().severe("Failed to delete mount: " + savedMount.getEntityName());
                 e.printStackTrace();
             }
+        }).exceptionally(e -> {
+            plugin.getLogger().severe("Failed to delete mount: " + savedMount.getEntityName());
+            return null;
         });
     }
 
@@ -79,6 +86,9 @@ public class SavedMountTable {
                 plugin.getLogger().severe("Failed to save mount: " + savedMount.getEntityName());
                 e.printStackTrace();
             }
+        }).exceptionally(e -> {
+            plugin.getLogger().severe("Failed to save mount: " + savedMount.getEntityName());
+            return null;
         });
     }
 

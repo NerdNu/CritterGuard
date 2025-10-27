@@ -138,8 +138,12 @@ public class ShowDisguiseSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(plugin.getCGConfig().PREFIX +
-                " <red>Usage: /critter showdisguise [on/off]</red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter showdisguise [on/off]</red>";
     }
 
     @Override

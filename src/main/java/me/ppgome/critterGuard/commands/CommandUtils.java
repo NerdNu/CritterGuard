@@ -1,17 +1,9 @@
 package me.ppgome.critterGuard.commands;
 
-import me.ppgome.critterGuard.CritterGuard;
 import me.ppgome.critterGuard.PlayerMeta;
 import me.ppgome.critterGuard.database.SavedAnimal;
-import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.entity.Entity;
 
 import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.function.Consumer;
 
 /**
  * A utility that provides static methods for commands.

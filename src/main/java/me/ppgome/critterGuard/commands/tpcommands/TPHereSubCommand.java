@@ -73,8 +73,12 @@ public class TPHereSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(config.PREFIX +
-                " <red>Usage: /critter tphere <playerName> <critterName|critterUUID|index></red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter tphere <playerName> <critterName|critterUUID|index></red>";
     }
 
     @Override

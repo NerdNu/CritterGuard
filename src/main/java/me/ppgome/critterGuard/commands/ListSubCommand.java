@@ -2,9 +2,14 @@ package me.ppgome.critterGuard.commands;
 
 import me.ppgome.critterGuard.*;
 import me.ppgome.critterGuard.database.SavedAnimal;
+import me.ppgome.critterGuard.database.SavedMount;
+import me.ppgome.critterGuard.database.SavedPet;
 import me.ppgome.critterGuard.utility.CritterTamingHandler;
 import me.ppgome.critterGuard.utility.MessageUtils;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
+import net.kyori.adventure.text.event.HoverEventSource;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -16,6 +21,8 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * This class represents the command used to show a player their (or another player, if specified)'s list of critters.
@@ -79,7 +86,7 @@ public class ListSubCommand implements SubCommandHandler {
                     getData(player, "all", critterCache.getPlayerMeta(player.getUniqueId()),
                             Integer.parseInt(args[0]));
                 } else {
-                    getDataAsync(player, "all", getPlayerMeta(args[0]), 1);
+                    getDataAsync(player, "all", args[0], 1);
                 }
                 break;
                 // Two arguments provided. Could be entity type and player name, entity type and page, or player name and page.
@@ -90,9 +97,9 @@ public class ListSubCommand implements SubCommandHandler {
                     getData(player, args[0].toLowerCase(), critterCache.getPlayerMeta(player.getUniqueId()),
                             Integer.parseInt(args[1]));
                 } else if(isEntityType) {
-                    getDataAsync(player, args[0].toLowerCase(), getPlayerMeta(args[1]), 1);
+                    getDataAsync(player, args[0].toLowerCase(), args[1], 1);
                 } else if(isPageNumber) {
-                    getDataAsync(player, "all", getPlayerMeta(args[0]), Integer.parseInt(args[1]));
+                    getDataAsync(player, "all", args[0], Integer.parseInt(args[1]));
                 } else {
                     player.sendMessage(getUsage());
                 }
@@ -102,7 +109,7 @@ public class ListSubCommand implements SubCommandHandler {
                 isPageNumber = args[2].matches("\\d+");
                 isEntityType = entityTypes.contains(args[0].toLowerCase());
                 if(isEntityType && isPageNumber) {
-                    getDataAsync(player, args[0].toLowerCase(), getPlayerMeta(args[1]), Integer.parseInt(args[2]));
+                    getDataAsync(player, args[0].toLowerCase(), args[1], Integer.parseInt(args[2]));
                 } else {
                     player.sendMessage(getUsage());
                 }
@@ -125,7 +132,8 @@ public class ListSubCommand implements SubCommandHandler {
             List<SavedAnimal> filteredList = getFilteredList(playerMeta.getOwnedList(), entityType);
             int totalPages = 0;
             if(!filteredList.isEmpty()) totalPages = (int) Math.ceil((double) filteredList.size() / 5); // Calculate total pages based on 5 items per page
-            outputList(getAnimalsPerPage(filteredList, page, totalPages), player, page, totalPages);
+            outputList(getAnimalsPerPage(filteredList, page, totalPages), player, player.getName(), entityType, page,
+                    totalPages);
         } else {
             player.sendMessage(config.LIST_DOES_NOT_EXIST_OR_OWN);
         }
@@ -134,19 +142,20 @@ public class ListSubCommand implements SubCommandHandler {
     /**
      * Asynchronously retrieves player metadata and outputs the list of animals for the specified page.
      *
-     * @param player      The player who executed the command.
-     * @param entityType  The type of entity to filter by (e.g., "horse", "cat").
-     * @param playerMeta  A CompletableFuture containing the PlayerMeta data.
-     * @param page        The page number to retrieve.
+     * @param player        The player who executed the command.
+     * @param entityType    The type of entity to filter by (e.g., "horse", "cat").
+     * @param searchedName  The name of the player being searched for.
+     * @param page          The page number to retrieve.
      */
-    private void getDataAsync(Player player, String entityType, CompletableFuture<PlayerMeta> playerMeta, int page) {
-        playerMeta.thenAccept(meta -> Bukkit.getScheduler().runTask(plugin, () -> {
+    private void getDataAsync(Player player, String entityType, String searchedName, int page) {
+        getPlayerMeta(searchedName).thenAccept(meta -> Bukkit.getScheduler().runTask(plugin, () -> {
             if (meta != null && !meta.getOwnedList().isEmpty()) {
                 Bukkit.getScheduler().runTask(plugin, () -> {
                             List<SavedAnimal> filteredList = getFilteredList(meta.getOwnedList(), entityType);
                             int totalPages = 0;
                             if(!filteredList.isEmpty()) totalPages = (int) Math.ceil((double) filteredList.size() / 5); // Calculate total pages based on 5 items per page
-                            outputList(getAnimalsPerPage(filteredList, page, totalPages), player, page, totalPages);
+                            outputList(getAnimalsPerPage(filteredList, page, totalPages), player, searchedName,
+                                    entityType, page, totalPages);
                         });
             } else {
                 player.sendMessage(config.LIST_DOES_NOT_EXIST_OR_OWN);
@@ -204,7 +213,7 @@ public class ListSubCommand implements SubCommandHandler {
      * @param animalList The list of animals to output.
      * @param player     The player who executed the command.
      */
-    private void outputList(List<SavedAnimal> animalList, Player player, int page, int totalPages) {
+    private void outputList(List<SavedAnimal> animalList, Player player, String searchedName, String entityType, int page, int totalPages) {
         if (animalList.isEmpty()) {
             player.sendMessage(config.LIST_NO_MATCH);
             return;
@@ -225,6 +234,11 @@ public class ListSubCommand implements SubCommandHandler {
             } else {
                 location = animal.getLastLocation();
             }
+
+            // Despite doing the check earlier, a NPE is still triggered on the name variable in some instances.
+            if(name == null || location == null) continue;
+            name = validateName(animal, name);
+
             message = message.appendNewline()
                     .append(Component.text("[" + animal.getIndex() + "] ", NamedTextColor.GOLD))
                     .append(Component.text(Uuid + "... ", NamedTextColor.GRAY))
@@ -237,9 +251,25 @@ public class ListSubCommand implements SubCommandHandler {
         }
         if(page > totalPages) page = totalPages;
         message = message.appendNewline()
-                .append(Component.text("----==== ", NamedTextColor.GRAY))
-                .append(Component.text("Page " + page + "/" + totalPages, NamedTextColor.GOLD))
-                .append(Component.text(" ====----", NamedTextColor.GRAY));
+                .append(Component.text("----==== ", NamedTextColor.GRAY));
+
+        // If the player is on any page but the first, display the back arrow.
+        if(page > 1) {
+            message = message.append(Component.text(" ◀ ", NamedTextColor.YELLOW)
+                    .hoverEvent(HoverEvent.showText(Component.text("Last page")))
+                    .clickEvent(ClickEvent.runCommand("cg list " + entityType + " " + searchedName + " " + (page - 1))));
+        }
+
+        message = message.append(Component.text("Page " + page + "/" + totalPages, NamedTextColor.GOLD));
+
+        // If the player is on any page but the last, display the next arrow.
+        if(page < totalPages) {
+            message = message.append(Component.text(" ▶ ", NamedTextColor.YELLOW)
+                    .hoverEvent(HoverEvent.showText(Component.text("Next page")))
+                    .clickEvent(ClickEvent.runCommand("cg list " + entityType + " " + searchedName + " " + (page + 1))));
+        }
+
+        message = message.append(Component.text(" ====----", NamedTextColor.GRAY));
         player.sendMessage(message);
     }
 
@@ -258,6 +288,28 @@ public class ListSubCommand implements SubCommandHandler {
             return critterCache.getPlayerMeta(player.getUniqueId());
         });
     }
+
+    /*
+     Due to a bug early on in the life of CritterGuard, some names have the stringified version of a
+     TextComponent object. This method converts them back.
+     */
+    private String validateName(SavedAnimal savedAnimal, String name) {
+        Pattern pattern = Pattern.compile("content=\"(.*?)\"");
+        Matcher matcher = pattern.matcher(name);
+
+        if(matcher.find()) {
+            String fixedName = matcher.group(1);
+            savedAnimal.setEntityName(fixedName);
+            if(savedAnimal instanceof SavedMount savedMount) {
+                plugin.getSavedMountTable().save(savedMount);
+            } else {
+                plugin.getSavedPetTable().save((SavedPet) savedAnimal);
+            }
+            return fixedName;
+        }
+        return name;
+    }
+
     @Override
     public List<String> tabComplete(CommandSender sender, String[] args) {
         return switch (args.length) {
@@ -279,8 +331,12 @@ public class ListSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(config.PREFIX +
-                " <red>Usage: /critter list [entityType] [playerName] [pageNumber]</red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter list [entityType] [playerName] [pageNumber]</red>";
     }
 
     @Override

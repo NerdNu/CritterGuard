@@ -83,7 +83,12 @@ public class ToggleNotifsSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(config.PREFIX + " <red>Usage: /critter notifications [on/off]</red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter notifications [on/off]</red>";
     }
 
     @Override

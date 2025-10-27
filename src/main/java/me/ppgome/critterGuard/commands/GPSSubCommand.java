@@ -95,8 +95,12 @@ public class GPSSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(config.PREFIX + " <red>Usage: /critter gps <critterName OR uuid OR number>\n" +
-                "Note: Partial matches for names and UUIDs are supported.</red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter gps <critterName OR uuid OR number>";
     }
 
     @Override

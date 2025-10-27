@@ -167,13 +167,13 @@ public class PlayerMeta {
     }
 
     /**
-     * Retrieves an owned mount by its UUID.
-     * @param mountUuid the UUID of the mount to retrieve.
+     * Retrieves an owned critter by its UUID.
+     * @param animalUuid the UUID of the mount to retrieve.
      * @return the SavedAnimal if found, null otherwise.
      */
-    public SavedAnimal getOwnedMountByUuid(UUID mountUuid) {
+    public SavedAnimal getOwnedAnimalByUuid(UUID animalUuid) {
         for(SavedAnimal savedAnimal : ownedList) {
-            if(savedAnimal.getEntityUuid().equals(mountUuid)) return savedAnimal;
+            if(savedAnimal.getEntityUuid().equals(animalUuid)) return savedAnimal;
         }
         return null;
     }
