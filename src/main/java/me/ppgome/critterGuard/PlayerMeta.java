@@ -74,6 +74,10 @@ public class PlayerMeta {
      */
     public void removeOwnedAnimal(SavedAnimal savedAnimal) {
         this.ownedList.remove(savedAnimal);
+        // Update indices
+        for (int i = 0; i < ownedList.size(); i++) {
+            ownedList.get(i).setIndex(i + 1);
+        }
     }
 
     /**
