@@ -262,7 +262,7 @@ public class CritterTamingHandler {
                     Bukkit.getScheduler().runTask(plugin, () -> {
                         PlayerMeta playerMeta = critterCache.getPlayerMeta(savedPet.getEntityOwnerUuid());
                         if(playerMeta != null) {
-                            SavedAnimal realAnimal = playerMeta.getOwnedMountByUuid(entityUuid);
+                            SavedAnimal realAnimal = playerMeta.getOwnedAnimalByUuid(entityUuid);
                             if(realAnimal != null) {
                                 playerMeta.removeOwnedAnimal(realAnimal);
                             }

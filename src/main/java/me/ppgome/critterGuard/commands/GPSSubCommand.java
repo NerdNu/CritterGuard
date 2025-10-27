@@ -60,7 +60,12 @@ public class GPSSubCommand implements SubCommandHandler {
 
         // Search for the critter by name, UUID, or index
         SavedAnimal matchedSavedAnimal = CommandUtils.searchByIdentifier(critterIdentifier, playerMeta);
-        Entity matchedEntity = Bukkit.getEntity(matchedSavedAnimal.getEntityUuid());
+        Entity matchedEntity;
+        if(matchedSavedAnimal != null) {
+            matchedEntity = Bukkit.getEntity(matchedSavedAnimal.getEntityUuid());
+        } else {
+            matchedEntity = null;
+        }
 
         // If match found, notify the player
         if(matchedEntity != null) {

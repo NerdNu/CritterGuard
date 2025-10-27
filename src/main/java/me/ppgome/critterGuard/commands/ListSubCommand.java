@@ -255,18 +255,18 @@ public class ListSubCommand implements SubCommandHandler {
 
         // If the player is on any page but the first, display the back arrow.
         if(page > 1) {
-            message = message.append(Component.text(" ◀ ", NamedTextColor.YELLOW))
+            message = message.append(Component.text(" ◀ ", NamedTextColor.YELLOW)
                     .hoverEvent(HoverEvent.showText(Component.text("Last page")))
-                    .clickEvent(ClickEvent.runCommand("cg gps " + entityType + " " + searchedName + " " + (page - 1)));
+                    .clickEvent(ClickEvent.runCommand("cg list " + entityType + " " + searchedName + " " + (page - 1))));
         }
 
         message = message.append(Component.text("Page " + page + "/" + totalPages, NamedTextColor.GOLD));
 
         // If the player is on any page but the last, display the next arrow.
         if(page < totalPages) {
-            message = message.append(Component.text(" ▶ ", NamedTextColor.YELLOW))
+            message = message.append(Component.text(" ▶ ", NamedTextColor.YELLOW)
                     .hoverEvent(HoverEvent.showText(Component.text("Next page")))
-                    .clickEvent(ClickEvent.runCommand("cg gps " + entityType + " " + searchedName + " " + (page + 1)));
+                    .clickEvent(ClickEvent.runCommand("cg list " + entityType + " " + searchedName + " " + (page + 1))));
         }
 
         message = message.append(Component.text(" ====----", NamedTextColor.GRAY));

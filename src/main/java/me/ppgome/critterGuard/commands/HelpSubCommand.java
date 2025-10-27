@@ -67,11 +67,11 @@ public class HelpSubCommand implements SubCommandHandler {
             message = message.append(Component.text(subCommand.getCommandName(), NamedTextColor.GREEN))
                         .append(Component.text(" - ", NamedTextColor.GOLD))
                         .append(Component.text(subCommand.getDescription(), NamedTextColor.YELLOW)).appendNewline()
-                    .append(Component.text("Usage: ", NamedTextColor.RED))
-                        .append(Component.text(subCommand.getStringUsage(), NamedTextColor.RED));
+                    .append(MessageUtils.miniMessageDeserialize(subCommand.getStringUsage()))
+                    .appendNewline().appendNewline();
         }
 
-        message = Component.text("----==== ", NamedTextColor.GRAY)
+        message = message.append(Component.text("----==== ", NamedTextColor.GRAY))
                 .append(Component.text("Critter Help", NamedTextColor.GOLD))
                 .append(Component.text(" ====----", NamedTextColor.GRAY));
 

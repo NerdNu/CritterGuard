@@ -1,5 +1,5 @@
 name: CritterGuard
-version: '1.1.2'
+version: ${project.version}
 main: me.ppgome.critterGuard.CritterGuard
 api-version: '1.21.6'
 prefix: CritterGuard
