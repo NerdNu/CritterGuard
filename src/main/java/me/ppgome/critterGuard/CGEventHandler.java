@@ -511,8 +511,15 @@ public class CGEventHandler implements Listener {
         Entity entity = event.getEntity();
         if(tamingHandler.isMountableEntity(entity)) {
             Vehicle mount = (Vehicle) entity;
-            if(mount.getPassengers().isEmpty() && critterCache.getSavedMount(entity.getUniqueId()) != null) {
-                event.setCancelled(true);
+            if(critterCache.getSavedMount(entity.getUniqueId()) != null) {
+                if(mount.getPassengers().isEmpty()) {
+                    event.setCancelled(true);
+                } else {
+                    Entity causingEntity = event.getDamageSource().getCausingEntity();
+                    if(causingEntity != null && causingEntity instanceof Player) {
+                        event.setCancelled(true);
+                    }
+                }
             }
 
         } else if(tamingHandler.isPetEntity(entity)) {
