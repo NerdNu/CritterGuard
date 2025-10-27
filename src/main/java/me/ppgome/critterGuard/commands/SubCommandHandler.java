@@ -44,9 +44,15 @@ public interface SubCommandHandler {
 
     /**
      * Get command usage
-     * @return Usage string
+     * @return Usage component
      */
     Component getUsage();
+
+    /**
+     * Get command usage
+     * @return Usage string
+     */
+    String getStringUsage();
 
     /**
      * Get required permission

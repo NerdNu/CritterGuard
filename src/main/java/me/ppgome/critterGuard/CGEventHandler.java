@@ -21,7 +21,6 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
-import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.event.world.EntitiesUnloadEvent;
 
 import java.math.RoundingMode;
@@ -208,6 +207,8 @@ public class CGEventHandler implements Listener {
                 if(mount != null) {
                     ownerName = Bukkit.getOfflinePlayer(mount.getEntityOwnerUuid()).getName();
                     sendInfo(entity, player, ownerName);
+                } else {
+                    sendInfo(entity, player, "Nobody");
                 }
             }
         });
@@ -223,7 +224,7 @@ public class CGEventHandler implements Listener {
     private void sendInfo(Entity entity, Player player, String ownerName) {
         Bukkit.getScheduler().runTask(plugin, () -> {
             Component message = Component.text(ownerName, NamedTextColor.YELLOW)
-                    .append(Component.text(" Owns this critter!", NamedTextColor.GREEN));
+                    .append(Component.text(" owns this critter!", NamedTextColor.GREEN));
             if(entity instanceof AbstractHorse abstractHorse) {
                 DecimalFormat df = new DecimalFormat("#.###");
                 df.setRoundingMode(RoundingMode.UP);

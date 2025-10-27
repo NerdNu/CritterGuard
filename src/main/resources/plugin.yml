@@ -1,5 +1,5 @@
 name: CritterGuard
-version: '1.0.0'
+version: '1.1.2'
 main: me.ppgome.critterGuard.CritterGuard
 api-version: '1.21.6'
 prefix: CritterGuard
@@ -16,24 +16,26 @@ commands:
     permission-message: You do not have permission to use this command.
 
 permissions:
+  critterguard.help:
+    default: not op
   critterguard.access:
-    default: notop
+    default: not op
   critterguard.list:
-    default: notop
+    default: not op
   critterguard.gps:
-    default: notop
+    default: not op
   critterguard.notifications:
-    default: notop
+    default: not op
   critterguard.showdisguise:
-    default: notop
+    default: not op
   critterguard.info:
-    default: notop
+    default: not op
   critterguard.tame:
     default: op
   critterguard.untame:
-    default: notop
+    default: not op
   critterguard.untame.own:
-    default: notop
+    default: not op
   critterguard.untame.others:
     default: op
   critterguard.tp:

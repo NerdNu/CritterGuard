@@ -148,8 +148,12 @@ public class AccessSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(config.PREFIX +
-                " <red>Usage: /critter access <add/remove> <full/passenger> <playername></red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter access <add/remove> <full/passenger> <playername></red>";
     }
 
     @Override

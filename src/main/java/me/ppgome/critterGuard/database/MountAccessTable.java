@@ -38,11 +38,14 @@ public class MountAccessTable {
     public CompletableFuture<List<MountAccess>> getAllMountAccess() {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                return new ArrayList<>(mountAccessDao.queryForAll());
+                return mountAccessDao.queryForAll();
             } catch (Exception e) {
                 plugin.logError("Failed to fetch all mount access records: \n" + e.getMessage());
-                return new ArrayList<>();
+                return new ArrayList<MountAccess>();
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to fetch all mount access records: \n" + e.getMessage());
+            return new ArrayList<>();
         });
     }
 
@@ -59,6 +62,11 @@ public class MountAccessTable {
                         + " on mount: " + mountAccess.getMountUuid());
                 e.printStackTrace();
             }
+        }).exceptionally(e -> {
+            plugin.getLogger().severe("Failed to delete mount access for user: " + mountAccess.getPlayerUuid()
+                    + " on mount: " + mountAccess.getMountUuid());
+            e.printStackTrace();
+            return null;
         });
     }
 
@@ -74,6 +82,10 @@ public class MountAccessTable {
                 plugin.logError("Failed to save mount access for " + mountAccess.getPlayerUuid() + " on " +
                         mountAccess.getMountUuid() + ":\n" + e.getMessage());
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to save mount access for " + mountAccess.getPlayerUuid() + " on " +
+                    mountAccess.getMountUuid() + ":\n" + e.getMessage());
+            return null;
         });
     }
 

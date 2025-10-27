@@ -81,7 +81,12 @@ public class UntameSubCommand implements SubCommandHandler {
 
     @Override
     public Component getUsage() {
-        return MessageUtils.miniMessageDeserialize(config.PREFIX + " <red>Usage: /critter untame</red>");
+        return MessageUtils.miniMessageDeserialize(config.PREFIX + " " + getStringUsage());
+    }
+
+    @Override
+    public String getStringUsage() {
+        return "<red>Usage: /critter untame</red>";
     }
 
     @Override

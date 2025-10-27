@@ -6,6 +6,7 @@ import me.ppgome.critterGuard.CritterGuard;
 import org.bukkit.entity.Entity;
 
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -52,6 +53,9 @@ public class SavedPetTable {
                 plugin.logError("Failed to retrieve pet with UUID: " + petUuid + "\n" + e.getMessage());
                 return null;
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to retrieve pet with UUID: " + petUuid + "\n" + e.getMessage());
+            return null;
         });
     }
 
@@ -68,6 +72,9 @@ public class SavedPetTable {
                 plugin.logError("Failed to fetch all saved pets\n" + e.getMessage());
                 return null;
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to fetch all saved pets\n" + e.getMessage());
+            return new ArrayList<>();
         });
     }
 
@@ -87,6 +94,9 @@ public class SavedPetTable {
                 plugin.logError("Failed to fetch owner of saved pet " + uuid +"\n" + e.getMessage());
                 return null;
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to fetch owner of saved pet " + uuid +"\n" + e.getMessage());
+            return null;
         });
     }
 
@@ -102,6 +112,9 @@ public class SavedPetTable {
             } catch (Exception e) {
                 plugin.logError("Failed to delete pet: " + savedPet.getEntityUuid() + "\n" + e.getMessage());
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to delete pet: " + savedPet.getEntityUuid() + "\n" + e.getMessage());
+            return null;
         });
     }
 
@@ -117,6 +130,9 @@ public class SavedPetTable {
             } catch (Exception e) {
                 plugin.logError("Failed to save pet: " + savedPet.getEntityUuid() + "\n" + e.getMessage());
             }
+        }).exceptionally(e -> {
+            plugin.logError("Failed to save pet: " + savedPet.getEntityUuid() + "\n" + e.getMessage());
+            return null;
         });
     }
 

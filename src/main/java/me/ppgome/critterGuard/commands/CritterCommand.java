@@ -48,6 +48,7 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
         registerSubCommand(new ToggleNotifsSubCommand(plugin));
         registerSubCommand(new ShowDisguiseSubCommand(plugin));
         registerSubCommand(new InfoSubCommand(plugin));
+        registerSubCommand(new HelpSubCommand(plugin));
     }
 
     //------------------------------------------------------------------------------------------------------------------
@@ -118,5 +119,11 @@ public class CritterCommand implements CommandExecutor, TabCompleter {
         }
 
         return new ArrayList<>();
+    }
+
+    //------------------------------------------------------------------------------------------------------------------
+
+    public Map<String, SubCommandHandler> getSubCommands() {
+        return this.subCommands;
     }
 }
