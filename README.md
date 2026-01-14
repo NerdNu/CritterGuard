@@ -1,4 +1,4 @@
-# CritterGuard
+![CritterGuard](https://i.ibb.co/Dfcydww6/critterguard.png)
 
 **A comprehensive pet protection plugin for Minecraft servers**
 
@@ -6,6 +6,9 @@ CritterGuard protects your beloved pets from death and theft by introducing an a
 
 > [!TIP]
 > **Quick Command:** Use `/critter` or the shorter `/cg` for all commands.
+
+> [!IMPORTANT]
+> All releases are published on the [Nerd.Nu repository](https://github.com/NerdNu/CritterGuard)
 
 ---
 
@@ -19,6 +22,7 @@ CritterGuard protects these creatures from theft and harm:
 - Zombie Horses, Skeleton Horses
 - Llamas, Camels
 - Happy Ghasts
+- Striders
 
 **Companion Creatures:**
 - Wolves, Cats, Parrots

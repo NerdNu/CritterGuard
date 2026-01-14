@@ -2,7 +2,6 @@ package me.ppgome.critterGuard;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.FileConfiguration;
 
 /**
@@ -29,6 +28,7 @@ public class CGConfig {
     public boolean LOG_DISMOUNT_NOTIFICATIONS;
     public boolean LOG_DEATH_NOTIFICATIONS;
     public boolean ENABLE_DISGUISE_SADDLES;
+    public boolean ENABLE_MINIMAP_MOD_OUTPUT;
 
     // Messages
     /*
@@ -41,10 +41,8 @@ public class CGConfig {
     public String GRANTED_PASSENGER_ACCESS;
     public String TARGET_GRANTED_FULL_ACCESS;
     public String TARGET_GRANTED_PASSENGER_ACCESS;
-    public String REVOKED_FULL_ACCESS;
-    public String REVOKED_PASSENGER_ACCESS;
-    public String TARGET_REVOKED_FULL_ACCESS;
-    public String TARGET_REVOKED_PASSENGER_ACCESS;
+    public String REVOKED_ACCESS;
+    public String TARGET_REVOKED_ACCESS;
     public String ACCESS_NO_PLAYER;
     public Component ALREADY_HAS_ACCESS;
     public Component ALREADY_HAS_NO_ACCESS;
@@ -123,6 +121,7 @@ public class CGConfig {
         LOG_DISMOUNT_NOTIFICATIONS = plugin.getConfig().getBoolean(togglesPath + "logDismountNotifications", true);
         LOG_DEATH_NOTIFICATIONS = plugin.getConfig().getBoolean(togglesPath + "logDeathNotifications", true);
         ENABLE_DISGUISE_SADDLES = plugin.getConfig().getBoolean(togglesPath + "enableDisguiseSaddles", true);
+        ENABLE_MINIMAP_MOD_OUTPUT = config.getBoolean(togglesPath + "enableMinimapModOutput", false);
 
         // MESSAGES
         // --ACCESS
@@ -135,14 +134,10 @@ public class CGConfig {
                 + " " + config.getString(accessPath + "targetGrantedFullAccess", errorMessage);
         TARGET_GRANTED_PASSENGER_ACCESS = PREFIX
                 + " " + config.getString(accessPath + "targetGrantedPassengerAccess", errorMessage);
-        REVOKED_FULL_ACCESS = PREFIX
-                + " " + config.getString(accessPath + "revokedFullAccess", errorMessage);
-        REVOKED_PASSENGER_ACCESS = PREFIX
-                + " " + config.getString(accessPath + "revokedPassengerAccess", errorMessage);
-        TARGET_REVOKED_FULL_ACCESS = PREFIX
-                + " " + config.getString(accessPath + "targetRevokedFullAccess", errorMessage);
-        TARGET_REVOKED_PASSENGER_ACCESS = PREFIX
-                + " " + config.getString(accessPath + "targetRevokedPassengerAccess", errorMessage);
+        REVOKED_ACCESS = PREFIX
+                + " " + config.getString(accessPath + "revokedAccess", errorMessage);
+        TARGET_REVOKED_ACCESS = PREFIX
+                + " " + config.getString(accessPath + "targetRevokedAccess", errorMessage);
         ALREADY_HAS_ACCESS = mm.deserialize(PREFIX
                 + " " + config.getString(accessPath + "alreadyHasAccess", errorMessage));
         ALREADY_HAS_NO_ACCESS = mm.deserialize(PREFIX
